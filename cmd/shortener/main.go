@@ -35,13 +35,13 @@ func (h *RequestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		}
 
 		hash := h.storage.save(string(body))
-		shortUrl := "localhost:8080/" + hash
+		shortUrl := "http://localhost:8080/" + hash
+		w.WriteHeader(http.StatusCreated)
 		_, err = w.Write([]byte(shortUrl))
 		if err != nil {
 			http.Error(w, err.Error(), http.StatusInternalServerError)
 			return
 		}
-		w.WriteHeader(http.StatusCreated)
 		return
 	}
 
