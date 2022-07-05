@@ -5,14 +5,23 @@ import (
 )
 
 type Storage struct {
+	mapStore map[string]string
 }
 
-func (*Storage) save(url string) string {
+func NewStorage() Storage {
+	return Storage{mapStore: make(map[string]string)}
+}
+
+func (s *Storage) save(url string) string {
 	log.Printf("storage: save url %s\n", url)
-	return "dfdsavarevw"
+	hash := RandStringRunes(5)
+	s.mapStore[hash] = url
+	return hash
 }
 
-func (*Storage) get(hash string) string {
+func (s *Storage) get(hash string) string {
 	log.Printf("storage: get key %s\n", hash)
-	return "https://example.com/"
+	value := s.mapStore[hash]
+
+	return value
 }

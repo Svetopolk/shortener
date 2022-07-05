@@ -49,7 +49,7 @@ func (h *RequestHandler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 }
 
 func main() {
-	m := RequestHandler{}
+	m := RequestHandler{NewStorage()}
 	http.Handle("/", &m)
 	log.Fatal(http.ListenAndServe(":8080", nil))
 }
