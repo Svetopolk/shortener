@@ -20,9 +20,9 @@ func (h *RequestHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	hash := h.storage.save(string(body))
-	shortUrl := "http://localhost:8080/" + hash
+	shortURL := "http://localhost:8080/" + hash
 	w.WriteHeader(http.StatusCreated)
-	_, err = w.Write([]byte(shortUrl))
+	_, err = w.Write([]byte(shortURL))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
@@ -30,11 +30,11 @@ func (h *RequestHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 
 func (h *RequestHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 	hash := trimFirstRune(r.URL.Path)
-	fullUrl := h.storage.get(hash)
+	fullURL := h.storage.get(hash)
 
-	w.Header().Set("Location", fullUrl)
+	w.Header().Set("Location", fullURL)
 	w.WriteHeader(http.StatusTemporaryRedirect)
-	_, err := w.Write([]byte("redirect to " + fullUrl))
+	_, err := w.Write([]byte("redirect to " + fullURL))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

@@ -3,6 +3,7 @@ package main
 import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
@@ -25,7 +26,12 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string, body st
 	respBody, err := ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
 
-	defer resp.Body.Close()
+	defer func(Body io.ReadCloser) {
+		err := Body.Close()
+		if err != nil {
+			t.Fatal(err)
+		}
+	}(resp.Body)
 
 	return resp, string(respBody)
 }
@@ -39,21 +45,32 @@ func TestRouter(t *testing.T) {
 	assert.Equal(t, http.StatusTemporaryRedirect, resp.StatusCode)
 	assert.Equal(t, "https://ya.ru", resp.Header.Get("Location"))
 	assert.Equal(t, "redirect to https://ya.ru", body)
+	closeBody(t, resp)
 
 	resp, body = testRequest(t, ts, "GET", "/98765", "")
 	assert.Equal(t, http.StatusTemporaryRedirect, resp.StatusCode)
 	assert.Equal(t, "", resp.Header.Get("Location"))
 	assert.Equal(t, "redirect to ", body)
+	closeBody(t, resp)
 
 	resp, body = testRequest(t, ts, "POST", "/", "https://ya.ru")
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
 	assert.Equal(t, "http://localhost:8080/12345", body)
+	closeBody(t, resp)
 
 	resp, body = testRequest(t, ts, "POST", "/", "")
 	assert.Equal(t, http.StatusBadRequest, resp.StatusCode)
 	assert.Equal(t, "", body)
+	closeBody(t, resp)
 
 	resp, body = testRequest(t, ts, "POST", "/1/2", "https://ya.ru")
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 	assert.Equal(t, "404 page not found\n", body)
+}
+
+func closeBody(t *testing.T, resp *http.Response) {
+	err := resp.Body.Close()
+	if err != nil {
+		t.Fatal(err)
+	}
 }
