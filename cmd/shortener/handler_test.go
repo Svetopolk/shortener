@@ -12,6 +12,10 @@ import (
 type TestStorage struct {
 }
 
+func NewTestStorage() Storage {
+	return &TestStorage{}
+}
+
 func (t TestStorage) save(string) string {
 	return "12345"
 }
@@ -87,7 +91,13 @@ func TestStatusHandler(t *testing.T) {
 			request := httptest.NewRequest(tt.request.method, tt.request.path, strings.NewReader("someString"))
 
 			w := httptest.NewRecorder()
-			h.ServeHTTP(w, request)
+			switch tt.request.method {
+			case http.MethodGet:
+				h.handleGet(w, request)
+			case http.MethodPost:
+				h.handlePost(w, request)
+			}
+
 			res := w.Result()
 			assert.Equal(t, tt.want.code, res.StatusCode)
 			if res.StatusCode != tt.want.code {
