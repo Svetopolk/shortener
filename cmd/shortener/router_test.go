@@ -66,6 +66,7 @@ func TestRouter(t *testing.T) {
 	resp, body = testRequest(t, ts, "POST", "/1/2", "https://ya.ru")
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 	assert.Equal(t, "404 page not found\n", body)
+	closeBody(t, resp)
 }
 
 func closeBody(t *testing.T, resp *http.Response) {
