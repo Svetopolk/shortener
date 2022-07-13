@@ -1,14 +1,17 @@
-package main
+package rest
 
 import (
-	"github.com/stretchr/testify/assert"
-	"github.com/stretchr/testify/require"
 	"io"
 	"io/ioutil"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/Svetopolk/shortener/internal/app/service"
+	"github.com/Svetopolk/shortener/internal/app/storage"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
 )
 
 func testRequest(t *testing.T, ts *httptest.Server, method, path string, body string) (*http.Response, string) {
@@ -37,7 +40,7 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string, body st
 }
 
 func TestRouter(t *testing.T) {
-	r := NewRouter(RequestHandler{NewTestStorage()})
+	r := NewRouter(RequestHandler{service.NewShortService(storage.NewTestStorage())})
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 

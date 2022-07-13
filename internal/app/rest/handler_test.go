@@ -1,34 +1,19 @@
-package main
+package rest
 
 import (
-	"github.com/stretchr/testify/assert"
 	"io"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+
+	"github.com/Svetopolk/shortener/internal/app/service"
+	"github.com/Svetopolk/shortener/internal/app/storage"
+	"github.com/stretchr/testify/assert"
 )
 
-type TestStorage struct {
-}
-
-func NewTestStorage() Storage {
-	return &TestStorage{}
-}
-
-func (t TestStorage) save(string) string {
-	return "12345"
-}
-
-func (t TestStorage) get(hash string) string {
-	if hash == "12345" {
-		return "https://ya.ru"
-	}
-	return ""
-}
-
 func TestStatusHandler(t *testing.T) {
-	h := RequestHandler{TestStorage{}}
+	h := RequestHandler{service.NewShortService(storage.NewTestStorage())}
 	type want struct {
 		code        int
 		response    string
