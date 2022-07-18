@@ -22,6 +22,8 @@ func (h *RequestHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
+	defer r.Body.Close()
+
 	if len(body) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
 		return
