@@ -12,8 +12,8 @@ type ShortService struct {
 	initialHashLength int
 }
 
-func NewShortService(storage storage.Storage) ShortService {
-	return ShortService{storage: storage, initialHashLength: 6}
+func NewShortService(storage storage.Storage) *ShortService {
+	return &ShortService{storage: storage, initialHashLength: 6}
 }
 
 func (s *ShortService) Get(hash string) string {

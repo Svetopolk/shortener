@@ -12,8 +12,8 @@ type RequestHandler struct {
 	storage service.ShortService
 }
 
-func NewRequestHandler(storage service.ShortService) *RequestHandler {
-	return &RequestHandler{storage}
+func NewRequestHandler(storage *service.ShortService) *RequestHandler {
+	return &RequestHandler{*storage}
 }
 
 func (h *RequestHandler) handlePost(w http.ResponseWriter, r *http.Request) {
