@@ -95,7 +95,7 @@ func TestStatusHandler(t *testing.T) {
 				if tt.request.path == "/" {
 					h.handlePost(w, request)
 				} else if tt.request.path == "/api/shorten" {
-					h.handleJsonPost(w, request)
+					h.handleJSONPost(w, request)
 				} else {
 					panic("unexpected path:" + tt.request.path)
 				}

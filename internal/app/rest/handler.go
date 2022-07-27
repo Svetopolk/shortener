@@ -11,13 +11,15 @@ import (
 )
 
 type RequestHandler struct {
-	service service.ShortService
+	service      service.ShortService
+	localAddress string
 }
 
-const localAddress = "http://localhost:8080/"
-
-func NewRequestHandler(storage *service.ShortService) *RequestHandler {
-	return &RequestHandler{*storage}
+func NewRequestHandler(service *service.ShortService) *RequestHandler {
+	return &RequestHandler{
+		service:      *service,
+		localAddress: "http://localhost:8080/",
+	}
 }
 
 func (h *RequestHandler) handlePost(w http.ResponseWriter, r *http.Request) {
@@ -33,16 +35,12 @@ func (h *RequestHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	hash := h.service.Save(string(body))
-	shortURL := makeShortUrl(hash)
+	shortURL := h.makeShortURL(hash)
 	w.WriteHeader(http.StatusCreated)
 	_, err = w.Write([]byte(shortURL))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
-}
-
-func makeShortUrl(hash string) string {
-	return localAddress + hash
 }
 
 func (h *RequestHandler) handleGet(w http.ResponseWriter, r *http.Request) {
@@ -57,7 +55,7 @@ func (h *RequestHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-func (h *RequestHandler) handleJsonPost(w http.ResponseWriter, r *http.Request) {
+func (h *RequestHandler) handleJSONPost(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
 	resBody, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -68,8 +66,8 @@ func (h *RequestHandler) handleJsonPost(w http.ResponseWriter, r *http.Request) 
 	if err := json.Unmarshal(resBody, &value); err != nil {
 		log.Fatal("can not unmarshal body:[", string(resBody), "] ", err)
 	}
-	hash := h.service.Save(value.Url)
-	response := Response{makeShortUrl(hash)}
+	hash := h.service.Save(value.URL)
+	response := Response{h.makeShortURL(hash)}
 	responseString, err := json.Marshal(response)
 	if err != nil {
 		panic(err)
@@ -84,8 +82,12 @@ func (h *RequestHandler) handleJsonPost(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+func (h *RequestHandler) makeShortURL(hash string) string {
+	return h.localAddress + hash
+}
+
 type Request struct {
-	Url string `json:"url"`
+	URL string `json:"url"`
 }
 
 type Response struct {
