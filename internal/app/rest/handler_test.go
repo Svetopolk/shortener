@@ -69,18 +69,36 @@ func TestStatusHandler(t *testing.T) {
 				response: `http://localhost:8080/12345`,
 			},
 		},
+		{
+			name: "POST url",
+			request: request{
+				method: http.MethodPost,
+				path:   "/api/shorten",
+				body:   `{"url":"https://ya.ru"}`,
+			},
+			want: want{
+				code:     201,
+				response: `{"result":"http://localhost:8080/12345"}`,
+			},
+		},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
-			request := httptest.NewRequest(tt.request.method, tt.request.path, strings.NewReader("someString"))
+			request := httptest.NewRequest(tt.request.method, tt.request.path, strings.NewReader(tt.request.body))
 
 			w := httptest.NewRecorder()
 			switch tt.request.method {
 			case http.MethodGet:
 				h.handleGet(w, request)
 			case http.MethodPost:
-				h.handlePost(w, request)
+				if tt.request.path == "/" {
+					h.handlePost(w, request)
+				} else if tt.request.path == "/api/shorten" {
+					h.handleJsonPost(w, request)
+				} else {
+					panic("unexpected path:" + tt.request.path)
+				}
 			}
 
 			res := w.Result()

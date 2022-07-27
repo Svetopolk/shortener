@@ -70,6 +70,11 @@ func TestRouter(t *testing.T) {
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 	assert.Equal(t, "404 page not found\n", body)
 	closeBody(t, resp)
+
+	resp, body = testRequest(t, ts, "POST", "/api/shorten", `{"url":"https://ya.ru"}`)
+	assert.Equal(t, http.StatusCreated, resp.StatusCode)
+	assert.Equal(t, `{"result":"http://localhost:8080/12345"}`, body)
+	closeBody(t, resp)
 }
 
 func closeBody(t *testing.T, resp *http.Response) {
