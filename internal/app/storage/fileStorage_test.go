@@ -37,7 +37,7 @@ func TestDoubleSave(t *testing.T) {
 }
 
 func Test(t *testing.T) {
-	assert.NotEmpty(t, NewFileStorage("/tmp/shortener.log"))
+	assert.NotEmpty(t, NewFileStorage("/tmp/shortener/shortener.log"))
 }
 
 func TestDirNotExist(t *testing.T) {

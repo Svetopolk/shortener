@@ -40,6 +40,9 @@ func (s *FileStorage) Get(hash string) (string, bool) {
 
 func checkDirExistOrCreate(fileStoragePath string) {
 	dir, _ := filepath.Split(fileStoragePath)
+	if dir == "" {
+		return
+	}
 	if _, err := os.Stat(fileStoragePath); os.IsNotExist(err) {
 		err := os.MkdirAll(dir, 0700)
 		if err != nil {
