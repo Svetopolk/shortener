@@ -35,3 +35,12 @@ func TestDoubleSave(t *testing.T) {
 	url, _ = anotherStorage.Get(hash)
 	assert.Equal(t, "url2", url)
 }
+
+func Test(t *testing.T) {
+	assert.NotEmpty(t, NewFileStorage("/tmp/shortener.log"))
+}
+
+func TestDirNotExist(t *testing.T) {
+	dir := util.RandomString(10)
+	assert.NotEmpty(t, NewFileStorage("/tmp/shortener/"+dir+"/log.file"))
+}

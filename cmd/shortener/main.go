@@ -24,6 +24,7 @@ func main() {
 	}
 	var store storage.Storage
 	if cfg.FileStoragePath != "" {
+		log.Println("environment var FILE_STORAGE_PATH is found: " + cfg.FileStoragePath)
 		store = storage.NewFileStorage(cfg.FileStoragePath)
 	} else {
 		store = storage.NewMemStorage()
