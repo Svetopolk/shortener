@@ -11,8 +11,9 @@ import (
 )
 
 type Config struct {
-	ServerAddress string `env:"SERVER_ADDRESS" envDefault:"localhost:8080"`
-	BaseURL       string `env:"BASE_URL" envDefault:"http://localhost:8080"`
+	ServerAddress   string `env:"SERVER_ADDRESS" envDefault:"localhost:8080"`
+	BaseURL         string `env:"BASE_URL" envDefault:"http://localhost:8080"`
+	FileStoragePath string `env:"FILE_STORAGE_PATH" `
 }
 
 func main() {
@@ -21,9 +22,13 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-
-	memStorage := storage.NewMemStorage()
-	shortService := service.NewShortService(memStorage)
+	var store storage.Storage
+	if cfg.FileStoragePath != "" {
+		store = storage.NewFileStorage(cfg.FileStoragePath)
+	} else {
+		store = storage.NewMemStorage()
+	}
+	shortService := service.NewShortService(store)
 	handler := rest.NewRequestHandler(shortService, cfg.BaseURL)
 	router := rest.NewRouter(handler)
 	log.Fatal(http.ListenAndServe(cfg.ServerAddress, router))
