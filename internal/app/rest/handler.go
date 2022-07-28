@@ -15,10 +15,10 @@ type RequestHandler struct {
 	baseURL string
 }
 
-func NewRequestHandler(service *service.ShortService, baseUrl string) *RequestHandler {
+func NewRequestHandler(service *service.ShortService, baseURL string) *RequestHandler {
 	return &RequestHandler{
 		service: *service,
-		baseURL: baseUrl,
+		baseURL: baseURL,
 	}
 }
 
