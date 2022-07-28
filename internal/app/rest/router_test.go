@@ -40,7 +40,7 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string, body st
 }
 
 func TestRouter(t *testing.T) {
-	r := NewRouter(NewRequestHandler(service.NewShortService(storage.NewTestStorage())))
+	r := NewRouter(NewRequestHandler(service.NewShortService(storage.NewTestStorage()), "http://localhost:8080"))
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 
@@ -69,6 +69,11 @@ func TestRouter(t *testing.T) {
 	resp, body = testRequest(t, ts, "POST", "/1/2", "https://ya.ru")
 	assert.Equal(t, http.StatusNotFound, resp.StatusCode)
 	assert.Equal(t, "404 page not found\n", body)
+	closeBody(t, resp)
+
+	resp, body = testRequest(t, ts, "POST", "/api/shorten", `{"url":"https://ya.ru"}`)
+	assert.Equal(t, http.StatusCreated, resp.StatusCode)
+	assert.Equal(t, `{"result":"http://localhost:8080/12345"}`, body)
 	closeBody(t, resp)
 }
 
