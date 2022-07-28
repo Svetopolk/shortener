@@ -11,14 +11,14 @@ import (
 )
 
 type RequestHandler struct {
-	service      service.ShortService
-	localAddress string
+	service service.ShortService
+	baseUrl string
 }
 
-func NewRequestHandler(service *service.ShortService) *RequestHandler {
+func NewRequestHandler(service *service.ShortService, baseUrl string) *RequestHandler {
 	return &RequestHandler{
-		service:      *service,
-		localAddress: "http://localhost:8080/",
+		service: *service,
+		baseUrl: baseUrl,
 	}
 }
 
@@ -83,7 +83,7 @@ func (h *RequestHandler) handleJSONPost(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *RequestHandler) makeShortURL(hash string) string {
-	return h.localAddress + hash
+	return h.baseUrl + "/" + hash
 }
 
 type Request struct {

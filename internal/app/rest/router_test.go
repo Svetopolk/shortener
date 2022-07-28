@@ -40,7 +40,7 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string, body st
 }
 
 func TestRouter(t *testing.T) {
-	r := NewRouter(NewRequestHandler(service.NewShortService(storage.NewTestStorage())))
+	r := NewRouter(NewRequestHandler(service.NewShortService(storage.NewTestStorage()), "http://localhost:8080"))
 	ts := httptest.NewServer(r)
 	defer ts.Close()
 

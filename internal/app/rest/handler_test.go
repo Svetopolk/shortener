@@ -13,7 +13,7 @@ import (
 )
 
 func TestStatusHandler(t *testing.T) {
-	h := NewRequestHandler(service.NewShortService(storage.NewTestStorage()))
+	h := NewRequestHandler(service.NewShortService(storage.NewTestStorage()), "http://localhost:8080")
 	type want struct {
 		code        int
 		response    string
