@@ -1,6 +1,7 @@
 package main
 
 import (
+	"flag"
 	"log"
 	"net/http"
 
@@ -22,6 +23,12 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+
+	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "-a serverAddress")
+	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "-b baseUrl")
+	flag.StringVar(&cfg.FileStoragePath, "f", cfg.FileStoragePath, "-f fileStoragePath")
+	flag.Parse()
+
 	var store storage.Storage
 	if cfg.FileStoragePath != "" {
 		log.Println("environment var FILE_STORAGE_PATH is found: " + cfg.FileStoragePath)
