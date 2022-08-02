@@ -8,6 +8,7 @@ import (
 
 func NewRouter(m *RequestHandler) chi.Router {
 	r := chi.NewRouter()
+	r.Use(gzipHandle)
 
 	r.Route("/", func(r chi.Router) {
 		r.Get("/{hash}", func(w http.ResponseWriter, r *http.Request) {

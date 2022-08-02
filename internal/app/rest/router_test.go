@@ -1,8 +1,11 @@
 package rest
 
 import (
+	"bytes"
+	"compress/gzip"
 	"io"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
@@ -14,8 +17,11 @@ import (
 	"github.com/stretchr/testify/require"
 )
 
-func testRequest(t *testing.T, ts *httptest.Server, method, path string, body string) (*http.Response, string) {
+func testRequest(t *testing.T, ts *httptest.Server, method, path string, body string, headers ...string) (*http.Response, string) {
 	req, err := http.NewRequest(method, ts.URL+path, strings.NewReader(body))
+	if len(headers) == 2 {
+		req.Header.Set(headers[0], headers[1])
+	}
 	require.NoError(t, err)
 
 	client := http.DefaultClient
@@ -75,6 +81,26 @@ func TestRouter(t *testing.T) {
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
 	assert.Equal(t, `{"result":"http://localhost:8080/12345"}`, body)
 	closeBody(t, resp)
+
+	resp, body = testRequest(t, ts, "POST", "/", "https://ya.ru", "Accept-Encoding", "gzip")
+	assert.Equal(t, http.StatusCreated, resp.StatusCode)
+	assert.Equal(t, "http://localhost:8080/12345", unzip(body))
+	assert.Equal(t, "gzip", resp.Header.Get("Content-Encoding"))
+	closeBody(t, resp)
+
+}
+
+func unzip(original string) string {
+	reader := bytes.NewReader([]byte(original))
+	gzReader, e := gzip.NewReader(reader)
+	if e != nil {
+		log.Fatal(e)
+	}
+	output, e := ioutil.ReadAll(gzReader)
+	if e != nil {
+		log.Fatal(e)
+	}
+	return string(output)
 }
 
 func closeBody(t *testing.T, resp *http.Response) {
