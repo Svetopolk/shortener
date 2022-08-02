@@ -164,7 +164,7 @@ func zip(original string) string {
 	if err := gz.Close(); err != nil {
 		log.Fatal(err)
 	}
-	return string(b.Bytes())
+	return b.String()
 }
 
 func closeBody(t *testing.T, resp *http.Response) {

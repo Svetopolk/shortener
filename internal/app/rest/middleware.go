@@ -3,6 +3,7 @@ package rest
 import (
 	"compress/gzip"
 	"io"
+	"log"
 	"net/http"
 	"strings"
 )
@@ -16,7 +17,7 @@ func (w gzipWriter) Write(b []byte) (int, error) {
 	return w.Writer.Write(b)
 }
 
-func gzipHandle(next http.Handler) http.Handler {
+func gzipResponseHandle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		acceptEncodingHeader := r.Header.Get("Accept-Encoding")
 		if !strings.Contains(acceptEncodingHeader, "gzip") {
@@ -32,5 +33,17 @@ func gzipHandle(next http.Handler) http.Handler {
 
 		w.Header().Set("Content-Encoding", "gzip")
 		next.ServeHTTP(gzipWriter{ResponseWriter: w, Writer: gz}, r)
+	})
+}
+
+func gzipRequestHandle(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		contentEncodingHeader := r.Header.Get("Content-Encoding")
+		if !strings.Contains(contentEncodingHeader, "gzip") {
+			next.ServeHTTP(w, r)
+			return
+		}
+		log.Println("Encoded request is received")
+		next.ServeHTTP(w, r)
 	})
 }
