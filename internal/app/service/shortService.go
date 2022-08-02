@@ -17,13 +17,13 @@ func NewShortService(storage storage.Storage) *ShortService {
 }
 
 func (s *ShortService) Get(hash string) string {
-	log.Printf("storage: get key %s\n", hash)
+	log.Printf("ShortService: get key %s\n", hash)
 	value, _ := s.storage.Get(hash)
 	return value
 }
 
 func (s *ShortService) Save(url string) string {
-	log.Printf("storage: save url %s\n", url)
+	log.Printf("ShortService: save url %s\n", url)
 	return s.storage.Save(s.generateHash(), url)
 }
 
