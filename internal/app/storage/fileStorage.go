@@ -4,37 +4,41 @@ import (
 	"log"
 	"os"
 	"path/filepath"
+	"sync"
 )
 
 type FileStorage struct {
-	mapStore        map[string]string
+	data            *map[string]string
 	fileStoragePath string
 	producer        *producer
+	mtx             sync.RWMutex
 }
 
 var _ Storage = &FileStorage{}
 
 func NewFileStorage(fileStoragePath string) *FileStorage {
-	mapStore := make(map[string]string)
-
 	checkDirExistOrCreate(fileStoragePath)
-	readFromFileIntoMap(fileStoragePath, mapStore)
+	mapStore := readFromFileIntoMap(fileStoragePath)
 
 	fileProducer, err := NewProducer(fileStoragePath)
 	if err != nil {
 		log.Fatal(err)
 	}
-	return &FileStorage{mapStore, fileStoragePath, fileProducer}
+	return &FileStorage{data: mapStore, fileStoragePath: fileStoragePath, producer: fileProducer}
 }
 
 func (s *FileStorage) Save(hash string, url string) string {
-	s.mapStore[hash] = url
+	s.mtx.Lock()
+	defer s.mtx.Unlock()
+	(*s.data)[hash] = url
 	s.writeToFile(hash, url)
 	return hash
 }
 
 func (s *FileStorage) Get(hash string) (string, bool) {
-	value, ok := s.mapStore[hash]
+	s.mtx.RLock()
+	defer s.mtx.RUnlock()
+	value, ok := (*s.data)[hash]
 	return value, ok
 }
 
@@ -51,12 +55,14 @@ func checkDirExistOrCreate(fileStoragePath string) {
 	}
 }
 
-func readFromFileIntoMap(fileStoragePath string, mapStore map[string]string) {
+func readFromFileIntoMap(fileStoragePath string) *map[string]string {
 	consumer, err := NewConsumer(fileStoragePath)
+	defer consumer.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
 
+	mapStore := make(map[string]string)
 	for i := 0; ; i++ {
 		record, err := consumer.ReadRecord()
 		if err != nil {
@@ -64,7 +70,7 @@ func readFromFileIntoMap(fileStoragePath string, mapStore map[string]string) {
 		}
 		mapStore[record.Hash] = record.URL
 	}
-	consumer.Close()
+	return &mapStore
 }
 
 func (s *FileStorage) writeToFile(hash string, url string) {
