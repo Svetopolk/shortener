@@ -1,7 +1,9 @@
 package rest
 
 import (
+	"encoding/json"
 	"io"
+	"log"
 	"net/http"
 
 	"github.com/Svetopolk/shortener/internal/app/service"
@@ -9,11 +11,15 @@ import (
 )
 
 type RequestHandler struct {
-	storage service.ShortService
+	service service.ShortService
+	baseURL string
 }
 
-func NewRequestHandler(storage *service.ShortService) *RequestHandler {
-	return &RequestHandler{*storage}
+func NewRequestHandler(service *service.ShortService, baseURL string) *RequestHandler {
+	return &RequestHandler{
+		service: *service,
+		baseURL: baseURL,
+	}
 }
 
 func (h *RequestHandler) handlePost(w http.ResponseWriter, r *http.Request) {
@@ -28,8 +34,8 @@ func (h *RequestHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	hash := h.storage.Save(string(body))
-	shortURL := "http://localhost:8080/" + hash
+	hash := h.service.Save(string(body))
+	shortURL := h.makeShortURL(hash)
 	w.WriteHeader(http.StatusCreated)
 	_, err = w.Write([]byte(shortURL))
 	if err != nil {
@@ -39,7 +45,7 @@ func (h *RequestHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 
 func (h *RequestHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 	hash := util.RemoveFirstSymbol(r.URL.Path)
-	fullURL := h.storage.Get(hash)
+	fullURL := h.service.Get(hash)
 
 	w.Header().Set("Location", fullURL)
 	w.WriteHeader(http.StatusTemporaryRedirect)
@@ -47,4 +53,43 @@ func (h *RequestHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}
+}
+
+func (h *RequestHandler) handleJSONPost(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	resBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	value := Request{}
+	if err := json.Unmarshal(resBody, &value); err != nil {
+		log.Fatal("can not unmarshal body:[", string(resBody), "] ", err)
+	}
+	hash := h.service.Save(value.URL)
+	response := Response{h.makeShortURL(hash)}
+	responseString, err := json.Marshal(response)
+	if err != nil {
+		panic(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	_, err = w.Write(responseString)
+	if err != nil {
+		panic(err)
+	}
+}
+
+func (h *RequestHandler) makeShortURL(hash string) string {
+	return h.baseURL + "/" + hash
+}
+
+type Request struct {
+	URL string `json:"url"`
+}
+
+type Response struct {
+	Result string `json:"result"`
 }

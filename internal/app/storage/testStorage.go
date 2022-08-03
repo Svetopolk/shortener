@@ -7,8 +7,11 @@ func NewTestStorage() *TestStorage {
 	return &TestStorage{}
 }
 
-func (t TestStorage) Save(string, string) string {
-	return "12345"
+func (t TestStorage) Save(hash string, url string) string {
+	if url == "https://ya.ru" {
+		return "12345"
+	}
+	return "67890"
 }
 
 func (t TestStorage) Get(hash string) (string, bool) {

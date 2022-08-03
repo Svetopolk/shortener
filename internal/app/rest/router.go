@@ -8,6 +8,7 @@ import (
 
 func NewRouter(m *RequestHandler) chi.Router {
 	r := chi.NewRouter()
+	r.Use(gzipResponseHandle, gzipRequestHandle)
 
 	r.Route("/", func(r chi.Router) {
 		r.Get("/{hash}", func(w http.ResponseWriter, r *http.Request) {
@@ -17,6 +18,10 @@ func NewRouter(m *RequestHandler) chi.Router {
 		r.Post("/", func(w http.ResponseWriter, r *http.Request) {
 			m.handlePost(w, r)
 		})
+		r.Post("/api/shorten", func(w http.ResponseWriter, r *http.Request) {
+			m.handleJSONPost(w, r)
+		})
 	})
+
 	return r
 }
