@@ -8,6 +8,8 @@ import (
 	"strings"
 )
 
+var _ http.ResponseWriter = gzipWriter{}
+
 type gzipWriter struct {
 	http.ResponseWriter
 	Writer io.Writer
@@ -36,6 +38,21 @@ func gzipResponseHandle(next http.Handler) http.Handler {
 	})
 }
 
+var _ io.ReadCloser = gzipRequestBody{}
+
+type gzipRequestBody struct {
+	Reader io.Reader
+	Closer io.Closer
+}
+
+func (g gzipRequestBody) Read(p []byte) (n int, err error) {
+	return g.Reader.Read(p)
+}
+
+func (g gzipRequestBody) Close() error {
+	return g.Closer.Close()
+}
+
 func gzipRequestHandle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		contentEncodingHeader := r.Header.Get("Content-Encoding")
@@ -44,6 +61,14 @@ func gzipRequestHandle(next http.Handler) http.Handler {
 			return
 		}
 		log.Println("Encoded request is received")
+
+		gz, err := gzip.NewReader(r.Body)
+		if err != nil {
+			http.Error(w, err.Error(), http.StatusInternalServerError)
+			return
+		}
+		defer gz.Close()
+		r.Body = gzipRequestBody{Reader: gz, Closer: gz}
 		next.ServeHTTP(w, r)
 	})
 }

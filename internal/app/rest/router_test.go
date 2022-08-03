@@ -97,21 +97,16 @@ func TestAcceptEncodingGzip(t *testing.T) {
 	closeBody(t, resp)
 }
 
-//TODO fix test
-func _TestContentEncodingGzip(t *testing.T) {
+func TestContentEncodingGzip(t *testing.T) {
 	ts := getServer()
 	defer ts.Close()
 
 	requestBody := zip("https://ya.ru")
-	//requestBody := "https://ya.ru"
 	resp, body := testRequest(t, ts, "POST", "/", requestBody, "Content-Encoding", "gzip")
 
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
 	assert.Equal(t, "http://localhost:8080/12345", body)
 	closeBody(t, resp)
-
-	//resp, body := testRequest(t, ts, "POST", "/", zip("https://ya.ru"), "Content-Encoding", "gzip")
-
 }
 
 func testRequest(t *testing.T, ts *httptest.Server, method, path string, body string, headers ...string) (*http.Response, string) {
