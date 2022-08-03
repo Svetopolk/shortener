@@ -8,7 +8,7 @@ import (
 )
 
 type FileStorage struct {
-	data            *map[string]string
+	data            map[string]string
 	fileStoragePath string
 	producer        *producer
 	mtx             sync.RWMutex
@@ -30,7 +30,7 @@ func NewFileStorage(fileStoragePath string) *FileStorage {
 func (s *FileStorage) Save(hash string, url string) string {
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
-	(*s.data)[hash] = url
+	s.data[hash] = url
 	s.writeToFile(hash, url)
 	return hash
 }
@@ -38,7 +38,7 @@ func (s *FileStorage) Save(hash string, url string) string {
 func (s *FileStorage) Get(hash string) (string, bool) {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
-	value, ok := (*s.data)[hash]
+	value, ok := s.data[hash]
 	return value, ok
 }
 
@@ -55,7 +55,7 @@ func checkDirExistOrCreate(fileStoragePath string) {
 	}
 }
 
-func readFromFileIntoMap(fileStoragePath string) *map[string]string {
+func readFromFileIntoMap(fileStoragePath string) map[string]string {
 	consumer, err := NewConsumer(fileStoragePath)
 	if err != nil {
 		log.Fatal(err)
@@ -70,7 +70,7 @@ func readFromFileIntoMap(fileStoragePath string) *map[string]string {
 		}
 		mapStore[record.Hash] = record.URL
 	}
-	return &mapStore
+	return mapStore
 }
 
 func (s *FileStorage) writeToFile(hash string, url string) {
