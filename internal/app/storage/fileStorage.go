@@ -57,10 +57,10 @@ func checkDirExistOrCreate(fileStoragePath string) {
 
 func readFromFileIntoMap(fileStoragePath string) *map[string]string {
 	consumer, err := NewConsumer(fileStoragePath)
-	defer consumer.Close()
 	if err != nil {
 		log.Fatal(err)
 	}
+	defer consumer.Close()
 
 	mapStore := make(map[string]string)
 	for i := 0; ; i++ {
