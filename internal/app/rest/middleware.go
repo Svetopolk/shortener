@@ -41,16 +41,15 @@ func gzipResponseHandle(next http.Handler) http.Handler {
 var _ io.ReadCloser = gzipRequestBody{}
 
 type gzipRequestBody struct {
-	Reader io.Reader
-	Closer io.Closer
+	ReadCloser io.ReadCloser
 }
 
 func (g gzipRequestBody) Read(p []byte) (n int, err error) {
-	return g.Reader.Read(p)
+	return g.ReadCloser.Read(p)
 }
 
 func (g gzipRequestBody) Close() error {
-	return g.Closer.Close()
+	return g.ReadCloser.Close()
 }
 
 func gzipRequestHandle(next http.Handler) http.Handler {
@@ -68,7 +67,7 @@ func gzipRequestHandle(next http.Handler) http.Handler {
 			return
 		}
 		defer gz.Close()
-		r.Body = gzipRequestBody{Reader: gz, Closer: gz}
+		r.Body = gzipRequestBody{ReadCloser: gz}
 		next.ServeHTTP(w, r)
 	})
 }
