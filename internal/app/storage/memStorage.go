@@ -26,3 +26,8 @@ func (s *MemStorage) Get(hash string) (string, bool) {
 	value, ok := s.mapStore[hash]
 	return value, ok
 }
+
+func (s *MemStorage) GetAll() map[string]string {
+	//TODO implement me
+	panic("implement me")
+}

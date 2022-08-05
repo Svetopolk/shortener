@@ -82,6 +82,27 @@ func (h *RequestHandler) handleJSONPost(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+func (h *RequestHandler) getUserUrls(w http.ResponseWriter, r *http.Request) {
+	pairs := h.service.GetAll()
+	response := make([]Pair, len(pairs))
+	for key, value := range pairs {
+		pair := Pair{key, value}
+		response = append(response, pair)
+	}
+	responseString, err := json.Marshal(response)
+	if err != nil {
+		panic(err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusOK)
+
+	_, err = w.Write(responseString)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (h *RequestHandler) makeShortURL(hash string) string {
 	return h.baseURL + "/" + hash
 }
@@ -92,4 +113,9 @@ type Request struct {
 
 type Response struct {
 	Result string `json:"result"`
+}
+
+type Pair struct {
+	ShortUrl    string `json:"short_url"`
+	OriginalUrl string `json:"original_url"`
 }

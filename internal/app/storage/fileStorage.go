@@ -42,6 +42,11 @@ func (s *FileStorage) Get(hash string) (string, bool) {
 	return value, ok
 }
 
+func (s *FileStorage) GetAll() map[string]string {
+	//TODO implement me
+	panic("implement me")
+}
+
 func checkDirExistOrCreate(fileStoragePath string) {
 	dir, _ := filepath.Split(fileStoragePath)
 	if dir == "" {

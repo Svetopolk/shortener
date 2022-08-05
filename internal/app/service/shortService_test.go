@@ -42,3 +42,8 @@ func (m *MockStorage) Get(hash string) (string, bool) {
 	m.requestCount++
 	return "hashExists", true
 }
+
+func (m *MockStorage) GetAll() map[string]string {
+	//TODO implement me
+	panic("implement me")
+}

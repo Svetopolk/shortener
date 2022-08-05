@@ -3,6 +3,8 @@ package storage
 type TestStorage struct {
 }
 
+var _ Storage = &TestStorage{}
+
 func NewTestStorage() *TestStorage {
 	return &TestStorage{}
 }
@@ -19,4 +21,9 @@ func (t TestStorage) Get(hash string) (string, bool) {
 		return "https://ya.ru", true
 	}
 	return "", false
+}
+
+func (t TestStorage) GetAll() map[string]string {
+	//TODO implement me
+	panic("implement me")
 }

@@ -22,6 +22,11 @@ func (s *ShortService) Get(hash string) string {
 	return value
 }
 
+func (s *ShortService) GetAll() map[string]string {
+	values := s.storage.GetAll()
+	return values
+}
+
 func (s *ShortService) Save(url string) string {
 	log.Printf("ShortService: save url %s\n", url)
 	return s.storage.Save(s.generateHash(), url)
