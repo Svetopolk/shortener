@@ -84,7 +84,8 @@ func (h *RequestHandler) handleJSONPost(w http.ResponseWriter, r *http.Request) 
 
 func (h *RequestHandler) getUserUrls(w http.ResponseWriter, r *http.Request) {
 	pairs := h.service.GetAll()
-	response := make([]Pair, len(pairs))
+	var response []Pair
+
 	for key, value := range pairs {
 		pair := Pair{key, value}
 		response = append(response, pair)

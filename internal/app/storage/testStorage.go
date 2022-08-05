@@ -24,6 +24,7 @@ func (t TestStorage) Get(hash string) (string, bool) {
 }
 
 func (t TestStorage) GetAll() map[string]string {
-	//TODO implement me
-	panic("implement me")
+	data := make(map[string]string)
+	data["12345"] = "https://ya.ru"
+	return data
 }

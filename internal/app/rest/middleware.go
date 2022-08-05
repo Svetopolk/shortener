@@ -73,20 +73,22 @@ func gzipRequestHandle(next http.Handler) http.Handler {
 	})
 }
 
-const userIdCookieName = "userId"
+const userIDCookieName = "userID"
 
-func userIdCookieHandle(next http.Handler) http.Handler {
+func userIDCookieHandle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 
-		userId, err := r.Cookie(userIdCookieName)
+		userID, err := r.Cookie(userIDCookieName)
 		if err != nil {
-			log.Print("userId cookie not found")
+			log.Print("userID cookie not found")
 			expiration := time.Now().Add(365 * 24 * time.Hour)
 			value := "11111"
-			cookie := http.Cookie{Name: userIdCookieName, Value: value, Expires: expiration}
+			cookie := http.Cookie{Name: userIDCookieName, Value: value, Expires: expiration}
 			http.SetCookie(w, &cookie)
+		} else {
+			http.SetCookie(w, userID)
 		}
-		log.Printf("userId cookie %v", userId)
+		log.Printf("userID cookie %v", userID)
 
 		next.ServeHTTP(w, r)
 	})

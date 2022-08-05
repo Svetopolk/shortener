@@ -3,13 +3,13 @@ package rest
 import (
 	"bytes"
 	"compress/gzip"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/Svetopolk/shortener/internal/app/service"
 	"github.com/Svetopolk/shortener/internal/app/storage"
@@ -109,6 +109,50 @@ func TestContentEncodingGzip(t *testing.T) {
 	closeBody(t, resp)
 }
 
+func TestGetAllPositive(t *testing.T) {
+	ts := getServer()
+	defer ts.Close()
+
+	resp, body := testRequest(t, ts, "GET", "/api/user/urls", "")
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	assert.Equal(t, `[{"short_url":"12345","original_url":"https://ya.ru"}]`, body)
+	closeBody(t, resp)
+}
+
+func TestUserIDCookieMissed(t *testing.T) {
+	ts := getServer()
+	defer ts.Close()
+
+	resp, _ := testRequest(t, ts, "GET", "/api/user/urls", "")
+
+	cookies := resp.Cookies()
+	assert.Equal(t, 1, len(cookies))
+	cookie := cookies[0]
+	assert.Equal(t, "userID", cookie.Name)
+	assert.Equal(t, "11111", cookie.Value)
+	closeBody(t, resp)
+}
+
+func TestUserIDCookiePresent(t *testing.T) {
+	ts := getServer()
+	defer ts.Close()
+
+	req, _ := http.NewRequest("GET", ts.URL+"/api/user/urls", strings.NewReader(""))
+
+	reqCookie := http.Cookie{Name: "userID", Value: "3456", Expires: time.Now().Add(time.Hour)}
+	req.AddCookie(&reqCookie)
+
+	resp, _ := sendRequest(t, req)
+
+	cookies := resp.Cookies()
+	assert.Equal(t, 1, len(cookies))
+	cookie := cookies[0]
+	assert.Equal(t, "userID", cookie.Name)
+	assert.Equal(t, "3456", cookie.Value)
+	closeBody(t, resp)
+}
+
 func testRequest(t *testing.T, ts *httptest.Server, method, path string, body string, headers ...string) (*http.Response, string) {
 	req, err := http.NewRequest(method, ts.URL+path, strings.NewReader(body))
 	if len(headers) == 2 {
@@ -116,6 +160,10 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string, body st
 	}
 	require.NoError(t, err)
 
+	return sendRequest(t, req)
+}
+
+func sendRequest(t *testing.T, req *http.Request) (*http.Response, string) {
 	client := http.DefaultClient
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
@@ -127,12 +175,7 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string, body st
 	respBody, err := ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
 
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}(resp.Body)
+	defer resp.Body.Close()
 
 	return resp, string(respBody)
 }
