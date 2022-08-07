@@ -77,19 +77,20 @@ const userIDCookieName = "userID"
 
 func userIDCookieHandle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		c, err := r.Cookie(userIDCookieName)
 
-		userID, err := r.Cookie(userIDCookieName)
 		if err != nil {
-			log.Print("userID cookie not found")
-			expiration := time.Now().Add(365 * 24 * time.Hour)
-			value := "11111"
-			cookie := http.Cookie{Name: userIDCookieName, Value: value, Expires: expiration}
-			http.SetCookie(w, &cookie)
+			http.SetCookie(w, generateNewCookie())
 		} else {
-			http.SetCookie(w, userID)
+			http.SetCookie(w, c)
 		}
-		log.Printf("userID cookie %v", userID)
-
 		next.ServeHTTP(w, r)
 	})
+}
+
+func generateNewCookie() *http.Cookie {
+	expiration := time.Now().Add(365 * 24 * time.Hour)
+	value := "11111"
+	cookie := http.Cookie{Name: userIDCookieName, Value: value, Expires: expiration}
+	return &cookie
 }

@@ -43,8 +43,9 @@ func (s *FileStorage) Get(hash string) (string, bool) {
 }
 
 func (s *FileStorage) GetAll() map[string]string {
-	//TODO implement me
-	panic("implement me")
+	s.mtx.RLock()
+	defer s.mtx.RUnlock()
+	return s.data
 }
 
 func checkDirExistOrCreate(fileStoragePath string) {

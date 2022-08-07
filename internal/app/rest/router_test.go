@@ -109,24 +109,32 @@ func TestContentEncodingGzip(t *testing.T) {
 	closeBody(t, resp)
 }
 
-func TestGetAllPositive(t *testing.T) {
+func TestGetAllCookiePresent(t *testing.T) {
 	ts := getServer()
 	defer ts.Close()
 
-	resp, body := testRequest(t, ts, "GET", "/api/user/urls", "")
+	req, _ := http.NewRequest("GET", ts.URL+"/api/user/urls", strings.NewReader(""))
+	reqCookie := http.Cookie{Name: "userID", Value: "3456", Expires: time.Now().Add(time.Hour)}
+	req.AddCookie(&reqCookie)
+	resp, _ := sendRequest(t, req)
 
-	assert.Equal(t, http.StatusOK, resp.StatusCode)
-	assert.Equal(t, `[{"short_url":"12345","original_url":"https://ya.ru"}]`, body)
+	cookies := resp.Cookies()
+	assert.Equal(t, 1, len(cookies))
+	cookie := cookies[0]
+	assert.Equal(t, "userID", cookie.Name)
+	assert.Equal(t, "3456", cookie.Value)
 	closeBody(t, resp)
+
 }
 
-func TestUserIDCookieMissed(t *testing.T) {
+func TestGetAllCookieMissed(t *testing.T) {
 	ts := getServer()
 	defer ts.Close()
 
 	resp, _ := testRequest(t, ts, "GET", "/api/user/urls", "")
 
 	cookies := resp.Cookies()
+	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
 	assert.Equal(t, 1, len(cookies))
 	cookie := cookies[0]
 	assert.Equal(t, "userID", cookie.Name)
@@ -139,10 +147,8 @@ func TestUserIDCookiePresent(t *testing.T) {
 	defer ts.Close()
 
 	req, _ := http.NewRequest("GET", ts.URL+"/api/user/urls", strings.NewReader(""))
-
 	reqCookie := http.Cookie{Name: "userID", Value: "3456", Expires: time.Now().Add(time.Hour)}
 	req.AddCookie(&reqCookie)
-
 	resp, _ := sendRequest(t, req)
 
 	cookies := resp.Cookies()

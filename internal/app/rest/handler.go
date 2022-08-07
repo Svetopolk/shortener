@@ -83,14 +83,23 @@ func (h *RequestHandler) handleJSONPost(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *RequestHandler) getUserUrls(w http.ResponseWriter, r *http.Request) {
+
+	userIDCookie, err := r.Cookie(userIDCookieName)
+	if err != nil {
+		log.Println("userID not found")
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	log.Println(userIDCookie.Value + " userID found")
+
 	pairs := h.service.GetAll()
-	var response []Pair
+	var list []ListResponse
 
 	for key, value := range pairs {
-		pair := Pair{key, value}
-		response = append(response, pair)
+		listResponse := ListResponse{key, value}
+		list = append(list, listResponse)
 	}
-	responseString, err := json.Marshal(response)
+	responseString, err := json.Marshal(list)
 	if err != nil {
 		panic(err)
 	}
@@ -116,7 +125,7 @@ type Response struct {
 	Result string `json:"result"`
 }
 
-type Pair struct {
-	ShortUrl    string `json:"short_url"`
-	OriginalUrl string `json:"original_url"`
+type ListResponse struct {
+	ShortURL    string `json:"short_url"`
+	OriginalURL string `json:"original_url"`
 }
