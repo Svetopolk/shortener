@@ -91,7 +91,7 @@ func (h *RequestHandler) getUserUrls(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	userID, err2 := decodeID(userIDCookie.Value)
-	if err != nil {
+	if err2 != nil {
 		log.Println("err when decode userID cookie:", err2)
 		w.WriteHeader(http.StatusNoContent)
 		return

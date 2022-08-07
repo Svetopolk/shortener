@@ -146,9 +146,9 @@ func TestUserIDCookiePresent(t *testing.T) {
 	ts := getServer()
 	defer ts.Close()
 
-	userId := getSignedUserID()
+	userID := getSignedUserID()
 	req, _ := http.NewRequest("GET", ts.URL+"/api/user/urls", strings.NewReader(""))
-	reqCookie := http.Cookie{Name: "userID", Value: userId, Expires: time.Now().Add(time.Hour)}
+	reqCookie := http.Cookie{Name: "userID", Value: userID, Expires: time.Now().Add(time.Hour)}
 	req.AddCookie(&reqCookie)
 	resp, _ := sendRequest(t, req)
 
@@ -156,7 +156,7 @@ func TestUserIDCookiePresent(t *testing.T) {
 	assert.Equal(t, 1, len(cookies))
 	cookie := cookies[0]
 	assert.Equal(t, "userID", cookie.Name)
-	assert.Equal(t, userId, cookie.Value)
+	assert.Equal(t, userID, cookie.Value)
 	closeBody(t, resp)
 }
 
