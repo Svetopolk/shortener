@@ -86,17 +86,17 @@ func (h *RequestHandler) getUserUrls(w http.ResponseWriter, r *http.Request) {
 
 	userIDCookie, err := r.Cookie(userIDCookieName)
 	if err != nil {
-		log.Println("userID not found")
+		log.Println("err when get userID cookie:", err)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-	log.Println(userIDCookie.Value + " userID found")
+	log.Println(userIDCookie.Value + " userID cookie found")
 
 	pairs := h.service.GetAll()
 	var list []ListResponse
 
-	for key, value := range pairs {
-		listResponse := ListResponse{key, value}
+	for hash, value := range pairs {
+		listResponse := ListResponse{h.makeShortURL(hash), value}
 		list = append(list, listResponse)
 	}
 	responseString, err := json.Marshal(list)
