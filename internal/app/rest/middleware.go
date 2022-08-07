@@ -77,19 +77,24 @@ const userIDCookieName = "userID"
 
 func userIDCookieHandle(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		c, err := r.Cookie(userIDCookieName)
+		userIDCookie, err := r.Cookie(userIDCookieName)
+		newUserIDCookie := userIDCookie
 		if err != nil {
-			http.SetCookie(w, generateNewCookie())
+			newUserIDCookie = generateNewCookie()
 		} else {
-			http.SetCookie(w, c)
+			_, err2 := decodeID(userIDCookie.Value)
+			if err2 != nil {
+				newUserIDCookie = generateNewCookie()
+			}
 		}
+		http.SetCookie(w, newUserIDCookie)
 		next.ServeHTTP(w, r)
 	})
 }
 
 func generateNewCookie() *http.Cookie {
 	expiration := time.Now().Add(365 * 24 * time.Hour)
-	value := "11111"
+	value := getSignedUserID()
 	cookie := http.Cookie{Name: userIDCookieName, Value: value, Expires: expiration}
 	return &cookie
 }

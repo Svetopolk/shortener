@@ -5,6 +5,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"strconv"
 
 	"github.com/Svetopolk/shortener/internal/app/service"
 	"github.com/Svetopolk/shortener/internal/app/util"
@@ -83,14 +84,19 @@ func (h *RequestHandler) handleJSONPost(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *RequestHandler) getUserUrls(w http.ResponseWriter, r *http.Request) {
-
 	userIDCookie, err := r.Cookie(userIDCookieName)
 	if err != nil {
 		log.Println("err when get userID cookie:", err)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
-	log.Println(userIDCookie.Value + " userID cookie found")
+	userID, err2 := decodeID(userIDCookie.Value)
+	if err != nil {
+		log.Println("err when decode userID cookie:", err2)
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+	log.Println(strconv.Itoa(int(userID)) + " userID found")
 
 	pairs := h.service.GetAll()
 	var list []ListResponse
