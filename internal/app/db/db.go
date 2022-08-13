@@ -13,7 +13,7 @@ type DB struct {
 }
 
 func NewDB(DatabaseDsn string) *DB {
-	return &DB{DatabaseDsn}
+	return &DB{DatabaseDsn: DatabaseDsn}
 }
 func (dbSource *DB) Ping() error {
 	db, err := sql.Open("pgx", dbSource.DatabaseDsn)

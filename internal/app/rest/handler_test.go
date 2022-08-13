@@ -7,13 +7,18 @@ import (
 	"strings"
 	"testing"
 
+	"github.com/Svetopolk/shortener/internal/app/db"
 	"github.com/Svetopolk/shortener/internal/app/service"
 	"github.com/Svetopolk/shortener/internal/app/storage"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestStatusHandler(t *testing.T) {
-	h := NewRequestHandler(service.NewShortService(storage.NewTestStorage()), "http://localhost:8080", nil)
+	h := NewRequestHandler(
+		service.NewShortService(storage.NewTestStorage()),
+		"http://localhost:8080",
+		db.NewDB(""),
+	)
 	type want struct {
 		code        int
 		response    string

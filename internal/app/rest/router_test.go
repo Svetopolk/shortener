@@ -11,6 +11,7 @@ import (
 	"testing"
 	"time"
 
+	"github.com/Svetopolk/shortener/internal/app/db"
 	"github.com/Svetopolk/shortener/internal/app/service"
 	"github.com/Svetopolk/shortener/internal/app/storage"
 	"github.com/stretchr/testify/assert"
@@ -142,6 +143,15 @@ func TestGetAllCookieMissed(t *testing.T) {
 	closeBody(t, resp)
 }
 
+func TestPingDb(t *testing.T) {
+	ts := getServer()
+	defer ts.Close()
+
+	resp, _ := testRequest(t, ts, "GET", "/ping", "")
+
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+}
+
 func TestUserIDCookiePresent(t *testing.T) {
 	ts := getServer()
 	defer ts.Close()
@@ -220,7 +230,11 @@ func closeBody(t *testing.T, resp *http.Response) {
 }
 
 func getServer() *httptest.Server {
-	r := NewRouter(NewRequestHandler(service.NewShortService(storage.NewTestStorage()), "http://localhost:8080", nil))
+	r := NewRouter(NewRequestHandler(
+		service.NewShortService(storage.NewTestStorage()),
+		"http://localhost:8080",
+		db.NewDB(""),
+	))
 	ts := httptest.NewServer(r)
 	return ts
 }
