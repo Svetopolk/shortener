@@ -41,7 +41,7 @@ func main() {
 		store = storage.NewMemStorage()
 	}
 	shortService := service.NewShortService(store)
-	dbService := db.NewDb(cfg.DatabaseDsn)
+	dbService := db.NewDB(cfg.DatabaseDsn)
 	handler := rest.NewRequestHandler(shortService, cfg.BaseURL, dbService)
 	router := rest.NewRouter(handler)
 	log.Fatal(http.ListenAndServe(cfg.ServerAddress, router))
