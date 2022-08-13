@@ -5,6 +5,7 @@ import (
 	"log"
 	"net/http"
 
+	"github.com/Svetopolk/shortener/internal/app/db"
 	"github.com/caarlos0/env/v6"
 
 	"github.com/Svetopolk/shortener/internal/app/rest"
@@ -16,6 +17,7 @@ type Config struct {
 	ServerAddress   string `env:"SERVER_ADDRESS" envDefault:"localhost:8080"`
 	BaseURL         string `env:"BASE_URL" envDefault:"http://localhost:8080"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH" `
+	DatabaseDsn     string `env:"DATABASE_DSN" `
 }
 
 func main() {
@@ -28,6 +30,7 @@ func main() {
 	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "-a serverAddress")
 	flag.StringVar(&cfg.BaseURL, "b", cfg.BaseURL, "-b baseUrl")
 	flag.StringVar(&cfg.FileStoragePath, "f", cfg.FileStoragePath, "-f fileStoragePath")
+	flag.StringVar(&cfg.DatabaseDsn, "d", cfg.DatabaseDsn, "-d DatabaseDsn")
 	flag.Parse()
 
 	var store storage.Storage
@@ -38,7 +41,8 @@ func main() {
 		store = storage.NewMemStorage()
 	}
 	shortService := service.NewShortService(store)
-	handler := rest.NewRequestHandler(shortService, cfg.BaseURL)
+	dbService := db.NewDb(cfg.DatabaseDsn)
+	handler := rest.NewRequestHandler(shortService, cfg.BaseURL, dbService)
 	router := rest.NewRouter(handler)
 	log.Fatal(http.ListenAndServe(cfg.ServerAddress, router))
 }

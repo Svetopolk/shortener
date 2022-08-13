@@ -7,19 +7,22 @@ import (
 	"net/http"
 	"strconv"
 
+	"github.com/Svetopolk/shortener/internal/app/db"
 	"github.com/Svetopolk/shortener/internal/app/service"
 	"github.com/Svetopolk/shortener/internal/app/util"
 )
 
 type RequestHandler struct {
-	service service.ShortService
-	baseURL string
+	service   *service.ShortService
+	baseURL   string
+	dbService *db.DB
 }
 
-func NewRequestHandler(service *service.ShortService, baseURL string) *RequestHandler {
+func NewRequestHandler(service *service.ShortService, baseURL string, db *db.DB) *RequestHandler {
 	return &RequestHandler{
-		service: *service,
-		baseURL: baseURL,
+		service:   service,
+		baseURL:   baseURL,
+		dbService: db,
 	}
 }
 
@@ -116,6 +119,15 @@ func (h *RequestHandler) getUserUrls(w http.ResponseWriter, r *http.Request) {
 	_, err = w.Write(responseString)
 	if err != nil {
 		panic(err)
+	}
+}
+
+func (h *RequestHandler) handlePing(w http.ResponseWriter, r *http.Request) {
+	err := h.dbService.Ping()
+	if err != nil {
+		w.WriteHeader(http.StatusOK)
+	} else {
+		w.WriteHeader(http.StatusInternalServerError)
 	}
 }
 

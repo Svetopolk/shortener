@@ -220,7 +220,7 @@ func closeBody(t *testing.T, resp *http.Response) {
 }
 
 func getServer() *httptest.Server {
-	r := NewRouter(NewRequestHandler(service.NewShortService(storage.NewTestStorage()), "http://localhost:8080"))
+	r := NewRouter(NewRequestHandler(service.NewShortService(storage.NewTestStorage()), "http://localhost:8080", nil))
 	ts := httptest.NewServer(r)
 	return ts
 }
