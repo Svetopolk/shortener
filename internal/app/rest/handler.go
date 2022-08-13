@@ -127,7 +127,7 @@ func (h *RequestHandler) handlePing(w http.ResponseWriter, r *http.Request) {
 	err := h.dbService.Ping()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
-		log.Fatal("db ping error:", err)
+		log.Println("db ping error:", err)
 	}
 	w.WriteHeader(http.StatusOK)
 }
