@@ -150,6 +150,7 @@ func TestPingDb(t *testing.T) {
 	resp, _ := testRequest(t, ts, "GET", "/ping", "")
 
 	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	closeBody(t, resp)
 }
 
 func TestUserIDCookiePresent(t *testing.T) {
