@@ -123,11 +123,13 @@ func (h *RequestHandler) getUserUrls(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *RequestHandler) handlePing(w http.ResponseWriter, r *http.Request) {
+	log.Println("db ping, DatabaseDsn:" + h.dbService.DatabaseDsn)
 	err := h.dbService.Ping()
 	if err != nil {
 		w.WriteHeader(http.StatusOK)
 	} else {
 		w.WriteHeader(http.StatusInternalServerError)
+		log.Println("db ping error:", err)
 	}
 }
 
