@@ -71,6 +71,7 @@ func (dbSource *Source) GetAll() map[string]string {
 	var data = make(map[string]string)
 
 	rows, err := dbSource.db.Query("select hash, url from data")
+
 	if err != nil {
 		log.Println(err)
 		return data
