@@ -75,7 +75,6 @@ func (dbSource *Source) GetAll() map[string]string {
 		log.Println(err)
 		return data
 	}
-
 	for rows.Next() {
 		err = rows.Scan(&hash, &url)
 		if err != nil {
