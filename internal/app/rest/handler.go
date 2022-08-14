@@ -13,16 +13,16 @@ import (
 )
 
 type RequestHandler struct {
-	service   *service.ShortService
-	baseURL   string
-	dbService *db.Source
+	service  *service.ShortService
+	baseURL  string
+	dbSource *db.Source
 }
 
 func NewRequestHandler(service *service.ShortService, baseURL string, db *db.Source) *RequestHandler {
 	return &RequestHandler{
-		service:   service,
-		baseURL:   baseURL,
-		dbService: db,
+		service:  service,
+		baseURL:  baseURL,
+		dbSource: db,
 	}
 }
 
@@ -123,8 +123,7 @@ func (h *RequestHandler) getUserUrls(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *RequestHandler) handlePing(w http.ResponseWriter, r *http.Request) {
-	log.Println("db ping, DatabaseDsn:" + h.dbService.DatabaseDsn)
-	err := h.dbService.Ping()
+	err := h.dbSource.Ping()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Println("db ping error:", err)

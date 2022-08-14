@@ -11,13 +11,13 @@ import (
 func TestDBStorage(t *testing.T) {
 	hash := util.RandomString(10)
 
-	dbService := db.NewDB("postgres://shortener:pass@localhost:5432/shortener")
+	dbSource := db.NewDB("postgres://shortener:pass@localhost:5432/shortener")
 
-	err := dbService.Ping()
+	err := dbSource.Ping()
 	if err != nil {
 		t.Skip("no db connection")
 	}
-	storage := NewDBStorage(dbService)
+	storage := NewDBStorage(dbSource)
 
 	storage.Save(hash, "url")
 	storage.Save(hash, "url2")

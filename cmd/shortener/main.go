@@ -17,7 +17,7 @@ type Config struct {
 	ServerAddress   string `env:"SERVER_ADDRESS" envDefault:"localhost:8080"`
 	BaseURL         string `env:"BASE_URL" envDefault:"http://localhost:8080"`
 	FileStoragePath string `env:"FILE_STORAGE_PATH"`
-	DatabaseDsn     string `env:"DATABASE_DSN"` //envDefault:"postgres://shortener:pass@localhost:5432/shortener"`
+	DatabaseDsn     string `env:"DATABASE_DSN"`
 }
 
 func main() {
@@ -41,14 +41,16 @@ func main() {
 		store = storage.NewMemStorage()
 	}
 
-	dbService := db.NewDB(cfg.DatabaseDsn)
+	dbSource := db.NewDB(cfg.DatabaseDsn)
+	defer dbSource.Close()
+
 	if cfg.DatabaseDsn != "" {
-		store = storage.NewDBStorage(dbService)
+		store = storage.NewDBStorage(dbSource)
 	}
 
 	shortService := service.NewShortService(store)
 
-	handler := rest.NewRequestHandler(shortService, cfg.BaseURL, dbService)
+	handler := rest.NewRequestHandler(shortService, cfg.BaseURL, dbSource)
 	router := rest.NewRouter(handler)
 	log.Fatal(http.ListenAndServe(cfg.ServerAddress, router))
 }

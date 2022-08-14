@@ -11,8 +11,7 @@ import (
 )
 
 type Source struct {
-	DatabaseDsn string
-	db          *sql.DB
+	db *sql.DB
 }
 
 func NewDB(DatabaseDsn string) *Source {
@@ -21,7 +20,15 @@ func NewDB(DatabaseDsn string) *Source {
 		log.Fatal("error access into DB")
 	}
 
-	return &Source{DatabaseDsn: DatabaseDsn, db: db}
+	return &Source{db: db}
+}
+
+func (dbSource *Source) Close() error {
+	err := dbSource.db.Close()
+	if err != nil {
+		return err
+	}
+	return nil
 }
 
 func (dbSource *Source) Ping() error {
