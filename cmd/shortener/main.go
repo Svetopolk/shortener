@@ -41,11 +41,13 @@ func main() {
 		store = storage.NewMemStorage()
 	}
 
-	shortService := service.NewShortService(store)
 	dbService := db.NewDB(cfg.DatabaseDsn)
 	if cfg.DatabaseDsn != "" {
 		dbService.InitTables()
+		store = storage.NewDBStorage(dbService)
 	}
+
+	shortService := service.NewShortService(store)
 
 	handler := rest.NewRequestHandler(shortService, cfg.BaseURL, dbService)
 	router := rest.NewRouter(handler)

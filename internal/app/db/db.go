@@ -7,21 +7,26 @@ import (
 	"time"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
-	"github.com/pkg/errors"
 )
 
 type Source struct {
 	DatabaseDsn string
+	db          *sql.DB
 }
 
 func NewDB(DatabaseDsn string) *Source {
-	return &Source{DatabaseDsn: DatabaseDsn}
+	db, err := sql.Open("pgx", DatabaseDsn)
+	if err != nil {
+		log.Fatal("error access into DB")
+	}
+
+	return &Source{DatabaseDsn: DatabaseDsn, db: db}
 }
 
 func (dbSource *Source) Ping() error {
-	if len(dbSource.DatabaseDsn) < 2 {
-		return errors.New("DatabaseDsn too short")
-	}
+	//if len(dbSource.DatabaseDsn) < 2 {
+	//	return errors.New("DatabaseDsn too short")
+	//}
 	db, err := sql.Open("pgx", dbSource.DatabaseDsn)
 	if err != nil {
 		return err
@@ -36,17 +41,49 @@ func (dbSource *Source) Ping() error {
 }
 
 func (dbSource *Source) InitTables() {
-	db, err := sql.Open("pgx", dbSource.DatabaseDsn)
-	if err != nil {
-		log.Println("db connection error - init tables are NOT created")
-		return
-	}
-	defer db.Close()
+	//db, err := sql.Open("pgx", dbSource.DatabaseDsn)
+	//if err != nil {
+	//	log.Println("db connection error - init tables are NOT created")
+	//	return
+	//}
+	//defer db.Close()
 
-	_, err = db.Exec("create table data (hash varchar(20) not null constraint data_pk primary key, url varchar(500))")
+	_, err := dbSource.db.Exec("create table data (hash varchar(20) not null constraint data_pk primary key, url varchar(500))")
 	if err != nil {
 		log.Println("init tables are NOT created - ", err)
 		return
 	}
 	log.Println("init tables are created")
+}
+
+func (dbSource *Source) Save(hash string, url string) {
+	//db, err := sql.Open("pgx", dbSource.DatabaseDsn)
+	//if err != nil {
+	//	log.Fatal("error access into DB")
+	//}
+	//defer db.Close()
+
+	log.Println("try to save; hash=", hash, " url=", url)
+
+	row, err := dbSource.db.Exec("insert into data (hash, url) values ($1, $2)", hash, url)
+	if err != nil {
+		log.Fatal(err)
+	}
+	log.Println("saved", row)
+}
+
+func (dbSource *Source) Get(hash string) string {
+	//db, err := sql.Open("pgx", dbSource.DatabaseDsn)
+	//if err != nil {
+	//	log.Fatal("error access into DB")
+	//}
+	//defer db.Close()
+
+	var url string
+	row := dbSource.db.QueryRow("select url from data where hash = $1", hash)
+	err := row.Scan(&url)
+	if err != nil {
+		log.Fatal(err)
+	}
+	return url
 }

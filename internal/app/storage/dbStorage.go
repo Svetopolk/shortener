@@ -3,21 +3,24 @@ package storage
 import "github.com/Svetopolk/shortener/internal/app/db"
 
 type DBStorage struct {
-	db db.Source
+	dbSource *db.Source
 }
 
 var _ Storage = &DBStorage{}
 
-func NewDBStorage() *MemStorage {
-	return &MemStorage{}
+func NewDBStorage(db *db.Source) *DBStorage {
+	db.InitTables()
+	return &DBStorage{dbSource: db}
 }
 
 func (s *DBStorage) Save(hash string, url string) string {
+	s.dbSource.Save(hash, url)
 	return hash
 }
 
 func (s *DBStorage) Get(hash string) (string, bool) {
-	return "", false
+	url := s.dbSource.Get(hash)
+	return url, true
 }
 
 func (s *DBStorage) GetAll() map[string]string {
