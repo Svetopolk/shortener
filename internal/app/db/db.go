@@ -34,7 +34,9 @@ func (dbSource *Source) Ping() error {
 }
 
 func (dbSource *Source) InitTables() {
-	_, err := dbSource.db.Exec("create table data (hash varchar(20) not null constraint data_pk primary key, url varchar(500))")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+	_, err := dbSource.db.ExecContext(ctx, "create table data (hash varchar(20) not null constraint data_pk primary key, url varchar(500))")
 	if err != nil {
 		log.Println("init tables are NOT created - ", err)
 		return
@@ -44,8 +46,10 @@ func (dbSource *Source) InitTables() {
 
 func (dbSource *Source) Save(hash string, url string) {
 	log.Println("try to save; hash=", hash, " url=", url)
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 
-	row, err := dbSource.db.Exec("insert into data (hash, url) values ($1, $2)", hash, url)
+	row, err := dbSource.db.ExecContext(ctx, "insert into data (hash, url) values ($1, $2)", hash, url)
 	if err != nil {
 		log.Fatal(err)
 	}
@@ -53,8 +57,10 @@ func (dbSource *Source) Save(hash string, url string) {
 }
 
 func (dbSource *Source) Get(hash string) string {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
 	var url string
-	row := dbSource.db.QueryRow("select url from data where hash = $1", hash)
+	row := dbSource.db.QueryRowContext(ctx, "select url from data where hash = $1", hash)
 	err := row.Scan(&url)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -70,7 +76,10 @@ func (dbSource *Source) GetAll() map[string]string {
 	var url string
 	var data = make(map[string]string)
 
-	rows, err := dbSource.db.Query("select hash, url from data")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	rows, err := dbSource.db.QueryContext(ctx, "select hash, url from data")
 	if err != nil {
 		log.Println(err)
 		return data
