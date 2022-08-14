@@ -43,7 +43,6 @@ func main() {
 
 	dbService := db.NewDB(cfg.DatabaseDsn)
 	if cfg.DatabaseDsn != "" {
-		dbService.InitTables()
 		store = storage.NewDBStorage(dbService)
 	}
 

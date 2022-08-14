@@ -14,6 +14,10 @@ func NewDBStorage(db *db.Source) *DBStorage {
 }
 
 func (s *DBStorage) Save(hash string, url string) string {
+	urlFromDB := s.dbSource.Get(hash)
+	if urlFromDB != "" {
+		return hash
+	}
 	s.dbSource.Save(hash, url)
 	return hash
 }

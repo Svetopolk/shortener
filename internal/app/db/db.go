@@ -3,6 +3,7 @@ package db
 import (
 	"context"
 	"database/sql"
+	"errors"
 	"log"
 	"time"
 
@@ -24,30 +25,15 @@ func NewDB(DatabaseDsn string) *Source {
 }
 
 func (dbSource *Source) Ping() error {
-	//if len(dbSource.DatabaseDsn) < 2 {
-	//	return errors.New("DatabaseDsn too short")
-	//}
-	db, err := sql.Open("pgx", dbSource.DatabaseDsn)
-	if err != nil {
-		return err
-	}
-	defer db.Close()
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
-	if err = db.PingContext(ctx); err != nil {
+	if err := dbSource.db.PingContext(ctx); err != nil {
 		return err
 	}
 	return nil
 }
 
 func (dbSource *Source) InitTables() {
-	//db, err := sql.Open("pgx", dbSource.DatabaseDsn)
-	//if err != nil {
-	//	log.Println("db connection error - init tables are NOT created")
-	//	return
-	//}
-	//defer db.Close()
-
 	_, err := dbSource.db.Exec("create table data (hash varchar(20) not null constraint data_pk primary key, url varchar(500))")
 	if err != nil {
 		log.Println("init tables are NOT created - ", err)
@@ -57,12 +43,6 @@ func (dbSource *Source) InitTables() {
 }
 
 func (dbSource *Source) Save(hash string, url string) {
-	//db, err := sql.Open("pgx", dbSource.DatabaseDsn)
-	//if err != nil {
-	//	log.Fatal("error access into DB")
-	//}
-	//defer db.Close()
-
 	log.Println("try to save; hash=", hash, " url=", url)
 
 	row, err := dbSource.db.Exec("insert into data (hash, url) values ($1, $2)", hash, url)
@@ -73,16 +53,13 @@ func (dbSource *Source) Save(hash string, url string) {
 }
 
 func (dbSource *Source) Get(hash string) string {
-	//db, err := sql.Open("pgx", dbSource.DatabaseDsn)
-	//if err != nil {
-	//	log.Fatal("error access into DB")
-	//}
-	//defer db.Close()
-
 	var url string
 	row := dbSource.db.QueryRow("select url from data where hash = $1", hash)
 	err := row.Scan(&url)
 	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			return ""
+		}
 		log.Fatal(err)
 	}
 	return url

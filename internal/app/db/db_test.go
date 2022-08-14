@@ -22,12 +22,20 @@ func _TestPingOk(t *testing.T) {
 	assert.Equal(t, nil, err)
 }
 
-func TestSave(t *testing.T) {
+func _TestSaveGet(t *testing.T) {
 	db := NewDB("postgres://shortener:pass@localhost:5432/shortener")
 	hash := util.RandomString(5)
 
 	db.Save(hash, "someUrl")
 
-	urlFromDb := db.Get(hash)
-	assert.Equal(t, "someUrl", urlFromDb)
+	urlFromDB := db.Get(hash)
+	assert.Equal(t, "someUrl", urlFromDB)
+}
+
+func _TestGetEmpty(t *testing.T) {
+	db := NewDB("postgres://shortener:pass@localhost:5432/shortener")
+	hash := util.RandomString(5)
+
+	urlFromDB := db.Get(hash)
+	assert.Equal(t, "someUrl", urlFromDB)
 }
