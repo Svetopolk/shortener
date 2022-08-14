@@ -28,5 +28,6 @@ func (s *DBStorage) Get(hash string) (string, bool) {
 }
 
 func (s *DBStorage) GetAll() map[string]string {
-	return map[string]string{}
+	urls := s.dbSource.GetAll()
+	return urls
 }

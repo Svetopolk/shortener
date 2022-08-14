@@ -64,3 +64,26 @@ func (dbSource *Source) Get(hash string) string {
 	}
 	return url
 }
+
+func (dbSource *Source) GetAll() map[string]string {
+	var hash string
+	var url string
+	var data = make(map[string]string)
+
+	rows, err := dbSource.db.Query("select hash, url from data")
+	if err != nil {
+		log.Println(err)
+		return data
+	}
+
+	for rows.Next() {
+		err = rows.Scan(&hash, &url)
+		if err != nil {
+			log.Println(err)
+			return data
+		}
+
+		data[hash] = url
+	}
+	return data
+}
