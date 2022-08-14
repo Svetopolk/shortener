@@ -71,11 +71,13 @@ func (dbSource *Source) GetAll() map[string]string {
 	var data = make(map[string]string)
 
 	rows, err := dbSource.db.Query("select hash, url from data")
-
 	if err != nil {
 		log.Println(err)
 		return data
 	}
+
+	defer rows.Close()
+
 	for rows.Next() {
 		err = rows.Scan(&hash, &url)
 		if err != nil {
@@ -83,6 +85,10 @@ func (dbSource *Source) GetAll() map[string]string {
 			return data
 		}
 		data[hash] = url
+	}
+	err = rows.Err()
+	if err != nil {
+		return data
 	}
 	return data
 }
