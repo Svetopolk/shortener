@@ -15,10 +15,10 @@ import (
 type RequestHandler struct {
 	service   *service.ShortService
 	baseURL   string
-	dbService *db.DB
+	dbService *db.Source
 }
 
-func NewRequestHandler(service *service.ShortService, baseURL string, db *db.DB) *RequestHandler {
+func NewRequestHandler(service *service.ShortService, baseURL string, db *db.Source) *RequestHandler {
 	return &RequestHandler{
 		service:   service,
 		baseURL:   baseURL,
