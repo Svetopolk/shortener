@@ -8,7 +8,7 @@ import (
 	"github.com/stretchr/testify/assert"
 )
 
-func TestDBStorageDoubleSave(t *testing.T) {
+func TestDBStorage(t *testing.T) {
 	hash := util.RandomString(10)
 
 	dbService := db.NewDB("postgres://shortener:pass@localhost:5432/shortener")
@@ -24,4 +24,10 @@ func TestDBStorageDoubleSave(t *testing.T) {
 
 	url, _ := storage.Get(hash)
 	assert.Equal(t, "url", url) //old value
+
+	data := storage.GetAll()
+	assert.GreaterOrEqual(t, len(data), 1)
+
+	urlFromMap := data[hash]
+	assert.Equal(t, "url", urlFromMap)
 }

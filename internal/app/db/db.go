@@ -82,7 +82,6 @@ func (dbSource *Source) GetAll() map[string]string {
 			log.Println(err)
 			return data
 		}
-
 		data[hash] = url
 	}
 	return data
