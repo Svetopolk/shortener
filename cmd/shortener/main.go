@@ -21,6 +21,9 @@ type Config struct {
 }
 
 func main() {
+	log.Println("main started")
+	defer log.Println("main finished")
+
 	var cfg Config
 	err := env.Parse(&cfg)
 	if err != nil {
