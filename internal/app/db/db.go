@@ -27,15 +27,15 @@ func (dbSource *Source) Close() error {
 	err := dbSource.db.Close()
 	if err != nil {
 		log.Println("error closing connection to DB:", err)
-		return err
 	}
-	return nil
+	return err
 }
 
 func (dbSource *Source) Ping() error {
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	if err := dbSource.db.PingContext(ctx); err != nil {
+		log.Println("error while ping DB:", err)
 		return err
 	}
 	return nil
@@ -44,7 +44,7 @@ func (dbSource *Source) Ping() error {
 func (dbSource *Source) InitTables() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	_, err := dbSource.db.ExecContext(ctx, "create table data (hash varchar(20) not null constraint data_pk primary key, url varchar(500))")
+	_, err := dbSource.db.ExecContext(ctx, "create table urls (hash varchar(20) not null constraint urls_pk primary key, url varchar(500))")
 	if err != nil {
 		log.Println("init tables are NOT created - ", err)
 		return
@@ -53,11 +53,11 @@ func (dbSource *Source) InitTables() {
 }
 
 func (dbSource *Source) Save(hash string, url string) {
-	log.Println("try to save; hash=", hash, " url=", url)
+	log.Println("try to save; hash=", hash, "url=", url)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	row, err := dbSource.db.ExecContext(ctx, "insert into data (hash, url) values ($1, $2)", hash, url)
+	row, err := dbSource.db.ExecContext(ctx, "insert into urls (hash, url) values ($1, $2)", hash, url)
 	if err != nil {
 		log.Println("error while Save:", err)
 	}
@@ -68,7 +68,7 @@ func (dbSource *Source) Get(hash string) string {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	var url string
-	row := dbSource.db.QueryRowContext(ctx, "select url from data where hash = $1", hash)
+	row := dbSource.db.QueryRowContext(ctx, "select url from urls where hash = $1", hash)
 	err := row.Scan(&url)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
@@ -88,7 +88,7 @@ func (dbSource *Source) GetAll() map[string]string {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	rows, err := dbSource.db.QueryContext(ctx, "select hash, url from data")
+	rows, err := dbSource.db.QueryContext(ctx, "select hash, url from urls limit 20")
 	if err != nil {
 		log.Println(err)
 		return data

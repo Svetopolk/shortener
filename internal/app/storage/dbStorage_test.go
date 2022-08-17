@@ -19,15 +19,15 @@ func TestDBStorage(t *testing.T) {
 	}
 	storage := NewDBStorage(dbSource)
 
-	storage.Save(hash, "url")
-	storage.Save(hash, "url2")
+	storage.Save(hash, "http://url")
+	storage.Save(hash, "http://url2")
 
 	url, _ := storage.Get(hash)
-	assert.Equal(t, "url", url) //old value
+	assert.Equal(t, "http://url", url) //old value
 
 	data := storage.GetAll()
 	assert.GreaterOrEqual(t, len(data), 1)
 
 	urlFromMap := data[hash]
-	assert.Equal(t, "url", urlFromMap)
+	assert.Equal(t, "http://url", urlFromMap)
 }
