@@ -200,13 +200,15 @@ func sendRequest(t *testing.T, req *http.Request) (*http.Response, string) {
 
 func unzip(original string) string {
 	reader := bytes.NewReader([]byte(original))
-	gzReader, e := gzip.NewReader(reader)
-	if e != nil {
-		log.Fatal(e)
+	gzReader, err := gzip.NewReader(reader)
+	if err != nil {
+		log.Println("error while unzip", err)
+		return ""
 	}
-	output, e := ioutil.ReadAll(gzReader)
-	if e != nil {
-		log.Fatal(e)
+	output, err := ioutil.ReadAll(gzReader)
+	if err != nil {
+		log.Println("error while unzip", err)
+		return ""
 	}
 	return string(output)
 }
@@ -215,10 +217,10 @@ func zip(original string) string {
 	var b bytes.Buffer
 	gz := gzip.NewWriter(&b)
 	if _, err := gz.Write([]byte(original)); err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	if err := gz.Close(); err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	return b.String()
 }

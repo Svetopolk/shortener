@@ -22,7 +22,7 @@ func NewFileStorage(fileStoragePath string) *FileStorage {
 
 	fileProducer, err := NewProducer(fileStoragePath)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("can not create NewFileStorage", err)
 	}
 	return &FileStorage{data: mapStore, fileStoragePath: fileStoragePath, producer: fileProducer}
 }

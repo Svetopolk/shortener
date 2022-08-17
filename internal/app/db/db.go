@@ -17,7 +17,7 @@ type Source struct {
 func NewDB(DatabaseDsn string) *Source {
 	db, err := sql.Open("pgx", DatabaseDsn)
 	if err != nil {
-		log.Fatal("error access into DB")
+		log.Fatal("error access to DB")
 	}
 
 	return &Source{db: db}
@@ -58,9 +58,9 @@ func (dbSource *Source) Save(hash string, url string) {
 
 	row, err := dbSource.db.ExecContext(ctx, "insert into data (hash, url) values ($1, $2)", hash, url)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("error while Save:", err)
 	}
-	log.Println("saved", row)
+	log.Println("db.Saved ", row)
 }
 
 func (dbSource *Source) Get(hash string) string {
@@ -71,9 +71,10 @@ func (dbSource *Source) Get(hash string) string {
 	err := row.Scan(&url)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
+			log.Println("Get from DB return nothing:", err)
 			return ""
 		}
-		log.Fatal(err)
+		log.Println("error while Get from DB:", err)
 	}
 	return url
 }
