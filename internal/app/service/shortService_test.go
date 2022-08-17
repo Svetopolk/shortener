@@ -44,6 +44,5 @@ func (m *MockStorage) Get(hash string) (string, bool) {
 }
 
 func (m *MockStorage) GetAll() map[string]string {
-	//TODO implement me
-	panic("implement me")
+	return make(map[string]string)
 }

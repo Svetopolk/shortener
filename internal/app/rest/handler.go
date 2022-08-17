@@ -68,13 +68,13 @@ func (h *RequestHandler) handleJSONPost(w http.ResponseWriter, r *http.Request) 
 
 	value := Request{}
 	if err := json.Unmarshal(resBody, &value); err != nil {
-		log.Fatal("can not unmarshal body:[", string(resBody), "] ", err)
+		log.Println("can not unmarshal body:[", string(resBody), "] ", err)
 	}
 	hash := h.service.Save(value.URL)
 	response := Response{h.makeShortURL(hash)}
 	responseString, err := json.Marshal(response)
 	if err != nil {
-		panic(err)
+		log.Println("can not marshal response:[", string(resBody), "] ", err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

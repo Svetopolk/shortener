@@ -17,7 +17,8 @@ type Source struct {
 func NewDB(DatabaseDsn string) *Source {
 	db, err := sql.Open("pgx", DatabaseDsn)
 	if err != nil {
-		log.Fatal("error access to DB")
+		log.Println("error accessing DB:", err)
+		return nil
 	}
 
 	return &Source{db: db}

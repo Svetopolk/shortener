@@ -27,7 +27,7 @@ func main() {
 	var cfg Config
 	err := env.Parse(&cfg)
 	if err != nil {
-		log.Fatal(err)
+		log.Println("error while reading config file:", err)
 	}
 
 	flag.StringVar(&cfg.ServerAddress, "a", cfg.ServerAddress, "-a serverAddress")
@@ -55,5 +55,5 @@ func main() {
 
 	handler := rest.NewRequestHandler(shortService, cfg.BaseURL, dbSource)
 	router := rest.NewRouter(handler)
-	log.Fatal(http.ListenAndServe(cfg.ServerAddress, router))
+	log.Println(http.ListenAndServe(cfg.ServerAddress, router))
 }
