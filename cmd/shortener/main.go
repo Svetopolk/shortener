@@ -45,7 +45,7 @@ func main() {
 	}
 
 	dbSource := db.NewDB(cfg.DatabaseDsn)
-	defer dbSource.Close()
+	//defer dbSource.Close()
 
 	if cfg.DatabaseDsn != "" {
 		store = storage.NewDBStorage(dbSource)

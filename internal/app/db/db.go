@@ -20,13 +20,13 @@ func NewDB(DatabaseDsn string) *Source {
 		log.Println("error accessing DB:", err)
 		return nil
 	}
-
 	return &Source{db: db}
 }
 
 func (dbSource *Source) Close() error {
 	err := dbSource.db.Close()
 	if err != nil {
+		log.Println("error closing connection to DB:", err)
 		return err
 	}
 	return nil
