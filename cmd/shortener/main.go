@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"os"
 	"os/signal"
+	"sync"
 	"syscall"
 
 	"github.com/Svetopolk/shortener/internal/app/db"
@@ -60,7 +61,23 @@ func main() {
 	handler := rest.NewRequestHandler(shortService, cfg.BaseURL, dbSource)
 	router := rest.NewRouter(handler)
 
+	server := &http.Server{Addr: cfg.ServerAddress, Handler: router}
+
+	wg := sync.WaitGroup{}
+
+	wg.Add(1)
 	go func() {
+		defer wg.Done()
+
+		if err := server.ListenAndServe(); err != nil {
+			log.Println("listen and serve failed: " + err.Error())
+		}
+	}()
+
+	wg.Add(1)
+	go func() {
+		defer wg.Done()
+
 		ch := make(chan os.Signal)
 		signal.Notify(ch,
 			syscall.SIGHUP,
@@ -68,13 +85,15 @@ func main() {
 			syscall.SIGTERM,
 			syscall.SIGQUIT,
 		)
-		for s := range ch {
-			log.Println("received signal: " + s.String())
-			os.Exit(1)
+
+		s := <-ch
+
+		log.Println("received signal: " + s.String())
+		if err := server.Close(); err != nil {
+			log.Println("close failed: " + err.Error())
 		}
+		return
 	}()
 
-	if err = http.ListenAndServe(cfg.ServerAddress, router); err != nil {
-		panic(err)
-	}
+	wg.Wait()
 }
