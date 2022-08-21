@@ -1,6 +1,9 @@
 package storage
 
-import "github.com/Svetopolk/shortener/internal/app/db"
+import (
+	"github.com/Svetopolk/shortener/internal/app/db"
+	"github.com/Svetopolk/shortener/internal/logging"
+)
 
 type DBStorage struct {
 	dbSource *db.Source
@@ -9,6 +12,9 @@ type DBStorage struct {
 var _ Storage = &DBStorage{}
 
 func NewDBStorage(db *db.Source) *DBStorage {
+	logging.Enter()
+	defer logging.Exit()
+
 	db.InitTables()
 	return &DBStorage{dbSource: db}
 }

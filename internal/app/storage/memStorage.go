@@ -1,6 +1,9 @@
 package storage
 
-import "sync"
+import (
+	"github.com/Svetopolk/shortener/internal/logging"
+	"sync"
+)
 
 type MemStorage struct {
 	data map[string]string
@@ -10,10 +13,16 @@ type MemStorage struct {
 var _ Storage = &MemStorage{}
 
 func NewMemStorage() *MemStorage {
+	logging.Enter()
+	defer logging.Exit()
+
 	return &MemStorage{data: make(map[string]string)}
 }
 
 func (s *MemStorage) Save(hash string, url string) string {
+	logging.Enter()
+	defer logging.Exit()
+
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 	s.data[hash] = url
@@ -21,6 +30,9 @@ func (s *MemStorage) Save(hash string, url string) string {
 }
 
 func (s *MemStorage) Get(hash string) (string, bool) {
+	logging.Enter()
+	defer logging.Exit()
+
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 	value, ok := s.data[hash]
@@ -28,6 +40,9 @@ func (s *MemStorage) Get(hash string) (string, bool) {
 }
 
 func (s *MemStorage) GetAll() map[string]string {
+	logging.Enter()
+	defer logging.Exit()
+
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 	return s.data

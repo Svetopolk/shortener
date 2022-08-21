@@ -2,6 +2,7 @@ package rest
 
 import (
 	"encoding/json"
+	"github.com/Svetopolk/shortener/internal/logging"
 	"io"
 	"log"
 	"net/http"
@@ -19,6 +20,9 @@ type RequestHandler struct {
 }
 
 func NewRequestHandler(service *service.ShortService, baseURL string, db *db.Source) *RequestHandler {
+	logging.Enter()
+	defer logging.Exit()
+
 	return &RequestHandler{
 		service:  service,
 		baseURL:  baseURL,
@@ -27,6 +31,9 @@ func NewRequestHandler(service *service.ShortService, baseURL string, db *db.Sou
 }
 
 func (h *RequestHandler) handlePost(w http.ResponseWriter, r *http.Request) {
+	logging.Enter()
+	defer logging.Exit()
+
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -48,6 +55,9 @@ func (h *RequestHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *RequestHandler) handleGet(w http.ResponseWriter, r *http.Request) {
+	logging.Enter()
+	defer logging.Exit()
+
 	hash := util.RemoveFirstSymbol(r.URL.Path)
 	fullURL := h.service.Get(hash)
 
@@ -60,6 +70,9 @@ func (h *RequestHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *RequestHandler) handleJSONPost(w http.ResponseWriter, r *http.Request) {
+	logging.Enter()
+	defer logging.Exit()
+
 	defer r.Body.Close()
 	resBody, err := io.ReadAll(r.Body)
 	if err != nil {
@@ -87,6 +100,9 @@ func (h *RequestHandler) handleJSONPost(w http.ResponseWriter, r *http.Request) 
 }
 
 func (h *RequestHandler) getUserUrls(w http.ResponseWriter, r *http.Request) {
+	logging.Enter()
+	defer logging.Exit()
+
 	userIDCookie, err := r.Cookie(userIDCookieName)
 	if err != nil {
 		log.Println("err when get userID cookie:", err)
@@ -123,6 +139,9 @@ func (h *RequestHandler) getUserUrls(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *RequestHandler) handlePing(w http.ResponseWriter, r *http.Request) {
+	logging.Enter()
+	defer logging.Exit()
+
 	err := h.dbSource.Ping()
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)

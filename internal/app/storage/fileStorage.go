@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"github.com/Svetopolk/shortener/internal/logging"
 	"log"
 	"os"
 	"path/filepath"
@@ -17,6 +18,9 @@ type FileStorage struct {
 var _ Storage = &FileStorage{}
 
 func NewFileStorage(fileStoragePath string) *FileStorage {
+	logging.Enter()
+	defer logging.Exit()
+
 	checkDirExistOrCreate(fileStoragePath)
 	mapStore := readFromFileIntoMap(fileStoragePath)
 
@@ -28,6 +32,9 @@ func NewFileStorage(fileStoragePath string) *FileStorage {
 }
 
 func (s *FileStorage) Save(hash string, url string) string {
+	logging.Enter()
+	defer logging.Exit()
+
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 	s.data[hash] = url
@@ -36,6 +43,9 @@ func (s *FileStorage) Save(hash string, url string) string {
 }
 
 func (s *FileStorage) Get(hash string) (string, bool) {
+	logging.Enter()
+	defer logging.Exit()
+
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 	value, ok := s.data[hash]
@@ -43,12 +53,18 @@ func (s *FileStorage) Get(hash string) (string, bool) {
 }
 
 func (s *FileStorage) GetAll() map[string]string {
+	logging.Enter()
+	defer logging.Exit()
+
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 	return s.data
 }
 
 func checkDirExistOrCreate(fileStoragePath string) {
+	logging.Enter()
+	defer logging.Exit()
+
 	dir, _ := filepath.Split(fileStoragePath)
 	if dir == "" {
 		return
@@ -62,6 +78,9 @@ func checkDirExistOrCreate(fileStoragePath string) {
 }
 
 func readFromFileIntoMap(fileStoragePath string) map[string]string {
+	logging.Enter()
+	defer logging.Exit()
+
 	consumer, err := NewConsumer(fileStoragePath)
 	if err != nil {
 		log.Println("error reading file from disk:", err)
@@ -80,6 +99,9 @@ func readFromFileIntoMap(fileStoragePath string) map[string]string {
 }
 
 func (s *FileStorage) writeToFile(hash string, url string) {
+	logging.Enter()
+	defer logging.Exit()
+
 	record := Record{hash, url}
 	err := s.producer.WriteRecord(&record)
 	if err != nil {

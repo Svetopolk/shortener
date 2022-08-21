@@ -4,6 +4,7 @@ import (
 	"context"
 	"database/sql"
 	"errors"
+	"github.com/Svetopolk/shortener/internal/logging"
 	"log"
 	"time"
 
@@ -15,6 +16,9 @@ type Source struct {
 }
 
 func NewDB(DatabaseDsn string) *Source {
+	logging.Enter()
+	defer logging.Exit()
+
 	db, err := sql.Open("pgx", DatabaseDsn)
 	if err != nil {
 		log.Println("error accessing DB:", err)
@@ -24,6 +28,9 @@ func NewDB(DatabaseDsn string) *Source {
 }
 
 func (dbSource *Source) Close() error {
+	logging.Enter()
+	defer logging.Exit()
+
 	err := dbSource.db.Close()
 	if err != nil {
 		log.Println("error closing connection to DB:", err)
@@ -32,6 +39,9 @@ func (dbSource *Source) Close() error {
 }
 
 func (dbSource *Source) Ping() error {
+	logging.Enter()
+	defer logging.Exit()
+
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	if err := dbSource.db.PingContext(ctx); err != nil {
@@ -42,6 +52,9 @@ func (dbSource *Source) Ping() error {
 }
 
 func (dbSource *Source) InitTables() {
+	logging.Enter()
+	defer logging.Exit()
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	_, err := dbSource.db.ExecContext(ctx, "create table urls (hash varchar(20) not null constraint urls_pk primary key, url varchar(500))")
@@ -53,6 +66,9 @@ func (dbSource *Source) InitTables() {
 }
 
 func (dbSource *Source) Save(hash string, url string) {
+	logging.Enter()
+	defer logging.Exit()
+
 	log.Println("try to save; hash=", hash, "url=", url)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -65,6 +81,9 @@ func (dbSource *Source) Save(hash string, url string) {
 }
 
 func (dbSource *Source) Get(hash string) string {
+	logging.Enter()
+	defer logging.Exit()
+
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	var url string
@@ -81,6 +100,9 @@ func (dbSource *Source) Get(hash string) string {
 }
 
 func (dbSource *Source) GetAll() map[string]string {
+	logging.Enter()
+	defer logging.Exit()
+
 	var hash string
 	var url string
 	var data = make(map[string]string)

@@ -2,6 +2,7 @@ package main
 
 import (
 	"flag"
+	"github.com/Svetopolk/shortener/internal/logging"
 	"log"
 	"net/http"
 
@@ -21,8 +22,8 @@ type Config struct {
 }
 
 func main() {
-	log.Println("main started")
-	defer log.Println("main finished")
+	logging.Enter()
+	defer logging.Exit()
 
 	var cfg Config
 	err := env.Parse(&cfg)
@@ -55,5 +56,8 @@ func main() {
 
 	handler := rest.NewRequestHandler(shortService, cfg.BaseURL, dbSource)
 	router := rest.NewRouter(handler)
-	log.Println(http.ListenAndServe(cfg.ServerAddress, router))
+
+	if err = http.ListenAndServe(cfg.ServerAddress, router); err != nil {
+		panic(err)
+	}
 }
