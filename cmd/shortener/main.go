@@ -2,13 +2,14 @@ package main
 
 import (
 	"flag"
-	"github.com/Svetopolk/shortener/internal/logging"
 	"log"
 	"net/http"
 	"os"
 	"os/signal"
 	"sync"
 	"syscall"
+
+	"github.com/Svetopolk/shortener/internal/logging"
 
 	"github.com/Svetopolk/shortener/internal/app/db"
 	"github.com/caarlos0/env/v6"
@@ -89,7 +90,7 @@ func main() {
 	go func() {
 		defer wg.Done()
 
-		ch := make(chan os.Signal)
+		ch := make(chan os.Signal, 1)
 		signal.Notify(ch,
 			syscall.SIGHUP,
 			syscall.SIGINT,
@@ -103,7 +104,6 @@ func main() {
 		if err := server.Close(); err != nil {
 			log.Println("close failed: " + err.Error())
 		}
-		return
 	}()
 
 	wg.Wait()
