@@ -11,9 +11,13 @@ import (
 func TestDBStorage(t *testing.T) {
 	hash := util.RandomString(10)
 
-	dbSource := db.NewDB("postgres://shortener:pass@localhost:5432/shortener")
+	dbSource, err := db.NewDB("postgres://shortener:pass@localhost:5432/shortener")
 
-	err := dbSource.Ping()
+	if err != nil {
+		t.Error("error when NewDB", err)
+	}
+
+	err = dbSource.Ping()
 	if err != nil {
 		t.Skip("no db connection")
 	}

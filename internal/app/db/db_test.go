@@ -12,7 +12,7 @@ func TestPingWrongPort(t *testing.T) {
 	db, err := NewDB("postgres://shortener:pass@localhost:5433/shortener")
 	require.NoError(t, err)
 	err = db.Ping()
-	require.NoError(t, err)
+	require.Error(t, err)
 }
 
 //before run this

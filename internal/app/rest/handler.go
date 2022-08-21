@@ -2,11 +2,12 @@ package rest
 
 import (
 	"encoding/json"
-	"github.com/Svetopolk/shortener/internal/logging"
 	"io"
 	"log"
 	"net/http"
 	"strconv"
+
+	"github.com/Svetopolk/shortener/internal/logging"
 
 	"github.com/Svetopolk/shortener/internal/app/db"
 	"github.com/Svetopolk/shortener/internal/app/service"
@@ -99,6 +100,33 @@ func (h *RequestHandler) handleJSONPost(w http.ResponseWriter, r *http.Request) 
 	}
 }
 
+func (h *RequestHandler) handleBatch(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	resBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	value := Request{}
+	if err := json.Unmarshal(resBody, &value); err != nil {
+		log.Println("can not unmarshal body:[", string(resBody), "] ", err)
+	}
+	hash := h.service.Save(value.URL)
+	response := Response{h.makeShortURL(hash)}
+	responseString, err := json.Marshal(response)
+	if err != nil {
+		log.Println("can not marshal response:[", string(resBody), "] ", err)
+	}
+
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(http.StatusCreated)
+
+	_, err = w.Write(responseString)
+	if err != nil {
+		panic(err)
+	}
+}
+
 func (h *RequestHandler) getUserUrls(w http.ResponseWriter, r *http.Request) {
 	logging.Enter()
 	defer logging.Exit()
@@ -142,16 +170,21 @@ func (h *RequestHandler) handlePing(w http.ResponseWriter, r *http.Request) {
 	logging.Enter()
 	defer logging.Exit()
 
-	if h.dbSource != nil {
-		err := h.dbSource.Ping()
-		if err != nil {
-			w.WriteHeader(http.StatusInternalServerError)
-			log.Println("db ping error:", err)
-		}
-		w.WriteHeader(http.StatusOK)
-	} else {
-		w.WriteHeader(http.StatusOK)
+	if h.dbSource == nil {
+		log.Println("db ping error, db is not initialized")
+		w.WriteHeader(http.StatusInternalServerError)
+		return
 	}
+
+	err := h.dbSource.Ping()
+
+	if err != nil {
+		w.WriteHeader(http.StatusInternalServerError)
+		log.Println("db ping error:", err)
+		return
+	}
+
+	w.WriteHeader(http.StatusOK)
 }
 
 func (h *RequestHandler) makeShortURL(hash string) string {
@@ -169,4 +202,14 @@ type Response struct {
 type ListResponse struct {
 	ShortURL    string `json:"short_url"`
 	OriginalURL string `json:"original_url"`
+}
+
+type BatchRequest struct {
+	CorrelationId string `json:"correlation_id"`
+	OriginalUrl   string `json:"original_url"`
+}
+
+type BatchResponse struct {
+	CorrelationId string `json:"correlation_id"`
+	ShortUrl      string `json:"short_url"`
 }

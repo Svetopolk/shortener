@@ -1,8 +1,9 @@
 package rest
 
 import (
-	"github.com/Svetopolk/shortener/internal/logging"
 	"net/http"
+
+	"github.com/Svetopolk/shortener/internal/logging"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -45,6 +46,9 @@ func NewRouter(m *RequestHandler) chi.Router {
 			defer logging.Exit()
 
 			m.handlePing(w, r)
+		})
+		r.Post("/api/shorten/batch", func(w http.ResponseWriter, r *http.Request) {
+			m.handleBatch(w, r)
 		})
 	})
 

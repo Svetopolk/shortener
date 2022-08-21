@@ -11,7 +11,6 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Svetopolk/shortener/internal/app/db"
 	"github.com/Svetopolk/shortener/internal/app/service"
 	"github.com/Svetopolk/shortener/internal/app/storage"
 	"github.com/stretchr/testify/assert"
@@ -236,7 +235,7 @@ func getServer() *httptest.Server {
 	r := NewRouter(NewRequestHandler(
 		service.NewShortService(storage.NewTestStorage()),
 		"http://localhost:8080",
-		db.NewDB(""),
+		nil,
 	))
 	ts := httptest.NewServer(r)
 	return ts
