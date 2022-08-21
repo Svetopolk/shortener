@@ -15,16 +15,15 @@ type Source struct {
 	db *sql.DB
 }
 
-func NewDB(DatabaseDsn string) *Source {
+func NewDB(DatabaseDsn string) (*Source, error) {
 	logging.Enter()
 	defer logging.Exit()
 
 	db, err := sql.Open("pgx", DatabaseDsn)
 	if err != nil {
-		log.Println("error accessing DB:", err)
-		return nil
+		return nil, err
 	}
-	return &Source{db: db}
+	return &Source{db: db}, nil
 }
 
 func (dbSource *Source) Close() error {

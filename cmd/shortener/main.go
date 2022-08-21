@@ -41,19 +41,30 @@ func main() {
 	flag.StringVar(&cfg.DatabaseDsn, "d", cfg.DatabaseDsn, "-d DatabaseDsn")
 	flag.Parse()
 
-	var store storage.Storage
-	if cfg.FileStoragePath != "" {
+	log.Printf("config: %+v", cfg)
+
+	var (
+		store    storage.Storage
+		dbSource *db.Source
+	)
+	switch {
+	case cfg.DatabaseDsn != "":
+		log.Println("init store as database based")
+		dbSource, err = db.NewDB(cfg.DatabaseDsn)
+		if err != nil {
+			log.Fatal("failed to init dbSource: " + err.Error())
+		}
+		defer dbSource.Close()
+		store = storage.NewDBStorage(dbSource)
+	case cfg.FileStoragePath != "":
+		log.Println("init store as file store based")
+
 		log.Println("environment var FILE_STORAGE_PATH is found: " + cfg.FileStoragePath)
 		store = storage.NewFileStorage(cfg.FileStoragePath)
-	} else {
+	default:
+		log.Println("init store as memory store based")
+
 		store = storage.NewMemStorage()
-	}
-
-	dbSource := db.NewDB(cfg.DatabaseDsn)
-	//defer dbSource.Close()
-
-	if cfg.DatabaseDsn != "" {
-		store = storage.NewDBStorage(dbSource)
 	}
 
 	shortService := service.NewShortService(store)

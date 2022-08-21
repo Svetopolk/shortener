@@ -142,12 +142,16 @@ func (h *RequestHandler) handlePing(w http.ResponseWriter, r *http.Request) {
 	logging.Enter()
 	defer logging.Exit()
 
-	err := h.dbSource.Ping()
-	if err != nil {
-		w.WriteHeader(http.StatusInternalServerError)
-		log.Println("db ping error:", err)
+	if h.dbSource != nil {
+		err := h.dbSource.Ping()
+		if err != nil {
+			w.WriteHeader(http.StatusInternalServerError)
+			log.Println("db ping error:", err)
+		}
+		w.WriteHeader(http.StatusOK)
+	} else {
+		w.WriteHeader(http.StatusOK)
 	}
-	w.WriteHeader(http.StatusOK)
 }
 
 func (h *RequestHandler) makeShortURL(hash string) string {
