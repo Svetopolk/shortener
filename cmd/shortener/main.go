@@ -5,6 +5,9 @@ import (
 	"github.com/Svetopolk/shortener/internal/logging"
 	"log"
 	"net/http"
+	"os"
+	"os/signal"
+	"syscall"
 
 	"github.com/Svetopolk/shortener/internal/app/db"
 	"github.com/caarlos0/env/v6"
@@ -56,6 +59,20 @@ func main() {
 
 	handler := rest.NewRequestHandler(shortService, cfg.BaseURL, dbSource)
 	router := rest.NewRouter(handler)
+
+	go func() {
+		ch := make(chan os.Signal)
+		signal.Notify(ch,
+			syscall.SIGHUP,
+			syscall.SIGINT,
+			syscall.SIGTERM,
+			syscall.SIGQUIT,
+		)
+		for s := range ch {
+			log.Println("received signal: " + s.String())
+			os.Exit(1)
+		}
+	}()
 
 	if err = http.ListenAndServe(cfg.ServerAddress, router); err != nil {
 		panic(err)
