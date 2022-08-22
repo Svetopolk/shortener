@@ -80,7 +80,7 @@ func (dbSource *Source) Save(hash string, url string) {
 	log.Println("db.Saved ", row)
 }
 
-func (dbSource *Source) Get(hash string) string {
+func (dbSource *Source) Get(hash string) (string, bool) {
 	logging.Enter()
 	defer logging.Exit()
 
@@ -92,11 +92,11 @@ func (dbSource *Source) Get(hash string) string {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			log.Println("Get from DB return nothing:", err)
-			return ""
+			return "", false
 		}
 		log.Println("error while Get from DB:", err)
 	}
-	return url
+	return url, true
 }
 
 func (dbSource *Source) GetAll() map[string]string {

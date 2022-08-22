@@ -20,8 +20,8 @@ func NewDBStorage(db *db.Source) *DBStorage {
 }
 
 func (s *DBStorage) Save(hash string, url string) string {
-	urlFromDB := s.dbSource.Get(hash)
-	if urlFromDB != "" {
+	_, ok := s.dbSource.Get(hash)
+	if ok {
 		return hash
 	}
 	s.dbSource.Save(hash, url)
@@ -29,8 +29,8 @@ func (s *DBStorage) Save(hash string, url string) string {
 }
 
 func (s *DBStorage) Get(hash string) (string, bool) {
-	url := s.dbSource.Get(hash)
-	return url, true
+	return s.dbSource.Get(hash)
+
 }
 
 func (s *DBStorage) GetAll() map[string]string {

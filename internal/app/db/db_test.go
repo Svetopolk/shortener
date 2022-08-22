@@ -33,7 +33,7 @@ func _TestSaveGet(t *testing.T) {
 
 	db.Save(hash, "someUrl")
 
-	urlFromDB := db.Get(hash)
+	urlFromDB, _ := db.Get(hash)
 	assert.Equal(t, "someUrl", urlFromDB)
 }
 
@@ -43,6 +43,6 @@ func _TestGetEmpty(t *testing.T) {
 
 	hash := util.RandomString(5)
 
-	urlFromDB := db.Get(hash)
+	urlFromDB, _ := db.Get(hash)
 	assert.Equal(t, "someUrl", urlFromDB)
 }
