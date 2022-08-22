@@ -68,9 +68,7 @@ func main() {
 	handler := rest.NewRequestHandler(shortService, cfg.BaseURL, dbSource)
 	router := rest.NewRouter(handler)
 
-	server := &http.Server{Addr: cfg.ServerAddress, Handler: router}
-
-	if err = server.ListenAndServe(); err != nil {
+	if err = http.ListenAndServe(cfg.ServerAddress, router); err != nil {
 		log.Println("listen and serve failed: " + err.Error())
 	}
 }
