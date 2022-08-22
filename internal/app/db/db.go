@@ -4,9 +4,10 @@ import (
 	"context"
 	"database/sql"
 	"errors"
-	"github.com/Svetopolk/shortener/internal/logging"
 	"log"
 	"time"
+
+	"github.com/Svetopolk/shortener/internal/logging"
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 )
@@ -56,7 +57,7 @@ func (dbSource *Source) InitTables() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	_, err := dbSource.db.ExecContext(ctx, "create table urls (hash varchar(20) not null constraint urls_pk primary key, url varchar(500))")
+	_, err := dbSource.db.ExecContext(ctx, "create table urls (hash varchar(30) not null constraint urls_pk primary key, url varchar(500))")
 	if err != nil {
 		log.Println("init tables are NOT created - ", err)
 		return

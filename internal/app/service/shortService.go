@@ -1,8 +1,9 @@
 package service
 
 import (
-	"github.com/Svetopolk/shortener/internal/logging"
 	"log"
+
+	"github.com/Svetopolk/shortener/internal/logging"
 
 	"github.com/Svetopolk/shortener/internal/app/storage"
 	"github.com/Svetopolk/shortener/internal/app/util"
@@ -59,6 +60,8 @@ func (s *ShortService) checkOrChange(hash string) string {
 	if _, ok := s.storage.Get(hash); !ok {
 		return hash
 	}
-	hash = hash + util.RandomString(1)
+
+	newHash := hash + util.RandomString(1)
+	log.Printf("hash %s already exist, generate a new one %s", hash, newHash)
 	return s.checkOrChange(hash)
 }
