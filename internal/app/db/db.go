@@ -100,6 +100,9 @@ func (dbSource *Source) SaveBatch(hashes []string, urls []string) error {
 	defer tx.Rollback()
 
 	stmt, err := dbSource.db.PrepareContext(ctx, "insert into urls (hash, url) values ($1, $2)")
+	if err != nil {
+		return err
+	}
 	defer stmt.Close()
 
 	for i := range hashes {
