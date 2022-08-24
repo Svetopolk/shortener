@@ -2,9 +2,10 @@ package main
 
 import (
 	"flag"
-	"github.com/Svetopolk/shortener/internal/logging"
 	"log"
 	"net/http"
+
+	"github.com/Svetopolk/shortener/internal/logging"
 
 	"github.com/Svetopolk/shortener/internal/app/db"
 	"github.com/caarlos0/env/v6"
@@ -53,13 +54,11 @@ func main() {
 		defer dbSource.Close()
 		store = storage.NewDBStorage(dbSource)
 	case cfg.FileStoragePath != "":
-		log.Println("init store as file store based")
-
 		log.Println("environment var FILE_STORAGE_PATH is found: " + cfg.FileStoragePath)
+		log.Println("init store as file store based")
 		store = storage.NewFileStorage(cfg.FileStoragePath)
 	default:
 		log.Println("init store as memory store based")
-
 		store = storage.NewMemStorage()
 	}
 

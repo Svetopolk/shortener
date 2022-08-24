@@ -43,10 +43,10 @@ func (s *FileStorage) Save(hash string, url string) string {
 	return hash
 }
 
-func (s *FileStorage) SaveBatch(hash []string, url []string) []string {
-	values := make([]string, 0, len(hash))
-	for i := range hash {
-		values = append(values, s.Save(hash[i], url[i]))
+func (s *FileStorage) SaveBatch(hashes []string, urls []string) []string {
+	values := make([]string, 0, len(hashes))
+	for i := range hashes {
+		values = append(values, s.Save(hashes[i], urls[i]))
 	}
 	return values
 }

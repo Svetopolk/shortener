@@ -24,6 +24,12 @@ func NewDB(DatabaseDsn string) (*Source, error) {
 	if err != nil {
 		return nil, err
 	}
+
+	db.SetMaxOpenConns(20)
+	db.SetMaxIdleConns(20)
+	db.SetConnMaxIdleTime(time.Second * 30)
+	db.SetConnMaxLifetime(time.Minute * 2)
+
 	return &Source{db: db}, nil
 }
 
