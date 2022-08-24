@@ -28,6 +28,12 @@ func (s *DBStorage) Save(hash string, url string) string {
 	return hash
 }
 
+func (s *DBStorage) SaveBatch(hashes []string, urls []string) []string {
+	// TODO there is no collision hashed check
+	s.dbSource.SaveBatch(hashes, urls)
+	return hashes
+}
+
 func (s *DBStorage) Get(hash string) (string, bool) {
 	return s.dbSource.Get(hash)
 

@@ -1,8 +1,9 @@
 package storage
 
 import (
-	"github.com/Svetopolk/shortener/internal/logging"
 	"sync"
+
+	"github.com/Svetopolk/shortener/internal/logging"
 )
 
 type MemStorage struct {
@@ -27,6 +28,14 @@ func (s *MemStorage) Save(hash string, url string) string {
 	defer s.mtx.RUnlock()
 	s.data[hash] = url
 	return hash
+}
+
+func (s *MemStorage) SaveBatch(hash []string, url []string) []string {
+	values := make([]string, 0, len(hash))
+	for i := range hash {
+		values = append(values, s.Save(hash[i], url[i]))
+	}
+	return values
 }
 
 func (s *MemStorage) Get(hash string) (string, bool) {

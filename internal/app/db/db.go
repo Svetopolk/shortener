@@ -80,6 +80,31 @@ func (dbSource *Source) Save(hash string, url string) {
 	log.Println("db.Saved ", row)
 }
 
+func (dbSource *Source) SaveBatch(hashes []string, urls []string) error {
+	logging.Enter()
+	defer logging.Exit()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	tx, err := dbSource.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	stmt, err := dbSource.db.PrepareContext(ctx, "insert into urls (hash, url) values ($1, $2)")
+	defer stmt.Close()
+
+	for i := range hashes {
+		if _, err = stmt.ExecContext(ctx, hashes[i], urls[i]); err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
 func (dbSource *Source) Get(hash string) (string, bool) {
 	logging.Enter()
 	defer logging.Exit()
@@ -98,8 +123,9 @@ func (dbSource *Source) Get(hash string) (string, bool) {
 	}
 	return url, true
 }
-
 func (dbSource *Source) GetAll() map[string]string {
+	Limit := 2000
+
 	logging.Enter()
 	defer logging.Exit()
 
@@ -110,7 +136,7 @@ func (dbSource *Source) GetAll() map[string]string {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
-	rows, err := dbSource.db.QueryContext(ctx, "select hash, url from urls limit 20")
+	rows, err := dbSource.db.QueryContext(ctx, "select hash, url from urls limit $1", Limit)
 	if err != nil {
 		log.Println(err)
 		return data

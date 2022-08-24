@@ -107,15 +107,22 @@ func (h *RequestHandler) handleBatch(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	value := Request{}
-	if err := json.Unmarshal(resBody, &value); err != nil {
+	var batchRequests []BatchRequest
+	if err := json.Unmarshal(resBody, &batchRequests); err != nil {
 		log.Println("can not unmarshal body:[", string(resBody), "] ", err)
 	}
-	hash := h.service.Save(value.URL)
-	response := Response{h.makeShortURL(hash)}
-	responseString, err := json.Marshal(response)
+
+	var batchResponses = make([]BatchResponse, 0, len(batchRequests))
+
+	for i := range batchRequests {
+		hash := h.service.Save(batchRequests[i].OriginalURL)
+		batchResponse := BatchResponse{batchRequests[i].CorrelationID, h.makeShortURL(hash)}
+		batchResponses = append(batchResponses, batchResponse)
+	}
+
+	responseString, err := json.Marshal(batchResponses)
 	if err != nil {
-		log.Println("can not marshal response:[", string(resBody), "] ", err)
+		log.Println("can not marshal batchResponses:[", string(resBody), "] ", err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")

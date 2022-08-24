@@ -1,11 +1,12 @@
 package storage
 
 import (
-	"github.com/Svetopolk/shortener/internal/logging"
 	"log"
 	"os"
 	"path/filepath"
 	"sync"
+
+	"github.com/Svetopolk/shortener/internal/logging"
 )
 
 type FileStorage struct {
@@ -40,6 +41,14 @@ func (s *FileStorage) Save(hash string, url string) string {
 	s.data[hash] = url
 	s.writeToFile(hash, url)
 	return hash
+}
+
+func (s *FileStorage) SaveBatch(hash []string, url []string) []string {
+	values := make([]string, 0, len(hash))
+	for i := range hash {
+		values = append(values, s.Save(hash[i], url[i]))
+	}
+	return values
 }
 
 func (s *FileStorage) Get(hash string) (string, bool) {

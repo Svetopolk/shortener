@@ -34,6 +34,14 @@ func (m *MockStorage) Save(hash string, _ string) string {
 	return hash
 }
 
+func (s *MockStorage) SaveBatch(hash []string, url []string) []string {
+	values := make([]string, 0, len(hash))
+	for i := range hash {
+		values = append(values, s.Save(hash[i], url[i]))
+	}
+	return values
+}
+
 func (m *MockStorage) Get(hash string) (string, bool) {
 	log.Default().Println("mock storage get with hash: ", hash)
 	if m.requestCount > 0 {

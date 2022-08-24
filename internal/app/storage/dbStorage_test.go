@@ -35,3 +35,31 @@ func TestDBStorage(t *testing.T) {
 	urlFromMap := data[hash]
 	assert.Equal(t, "http://url", urlFromMap)
 }
+
+func TestDBStorageSaveBatch(t *testing.T) {
+	dbSource, err := db.NewDB("postgres://shortener:pass@localhost:5432/shortener")
+
+	if err != nil {
+		t.Error("error when NewDB", err)
+	}
+
+	err = dbSource.Ping()
+	if err != nil {
+		t.Skip("no db connection")
+	}
+	storage := NewDBStorage(dbSource)
+
+	hash1 := util.RandomString(10)
+	hash2 := util.RandomString(10)
+	hashes := []string{hash1, hash2}
+	urls := []string{"http://url1", "http://url2"}
+
+	storage.SaveBatch(hashes, urls)
+
+	url1, _ := storage.Get(hash1)
+	assert.Equal(t, "http://url1", url1)
+
+	url2, _ := storage.Get(hash2)
+	assert.Equal(t, "http://url2", url2)
+
+}
