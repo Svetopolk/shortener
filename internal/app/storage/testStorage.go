@@ -16,10 +16,10 @@ func (t TestStorage) Save(hash string, url string) string {
 	return "67890"
 }
 
-func (s *TestStorage) SaveBatch(hashes []string, urls []string) []string {
+func (t *TestStorage) SaveBatch(hashes []string, urls []string) []string {
 	values := make([]string, 0, len(hashes))
 	for i := range hashes {
-		values = append(values, s.Save(hashes[i], urls[i]))
+		values = append(values, t.Save(hashes[i], urls[i]))
 	}
 	return values
 }

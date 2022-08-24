@@ -34,10 +34,10 @@ func (m *MockStorage) Save(hash string, _ string) string {
 	return hash
 }
 
-func (s *MockStorage) SaveBatch(hashes []string, urls []string) []string {
+func (m *MockStorage) SaveBatch(hashes []string, urls []string) []string {
 	values := make([]string, 0, len(hashes))
 	for i := range hashes {
-		values = append(values, s.Save(hashes[i], urls[i]))
+		values = append(values, m.Save(hashes[i], urls[i]))
 	}
 	return values
 }
