@@ -8,13 +8,12 @@ import (
 	"testing"
 
 	"github.com/Svetopolk/shortener/internal/app/service"
-	"github.com/Svetopolk/shortener/internal/app/storage"
 	"github.com/stretchr/testify/assert"
 )
 
 func TestStatusHandler(t *testing.T) {
 	h := NewRequestHandler(
-		service.NewShortService(storage.NewTestStorage()),
+		service.NewMockShortService(),
 		"http://localhost:8080",
 		nil,
 	)
@@ -83,6 +82,19 @@ func TestStatusHandler(t *testing.T) {
 			want: want{
 				code:     201,
 				response: `{"result":"http://localhost:8080/12345"}`,
+			},
+		},
+
+		{
+			name: "POST url",
+			request: request{
+				method: http.MethodPost,
+				path:   "/api/shorten",
+				body:   `{"url":"https://already.exist"}`,
+			},
+			want: want{
+				code:     409,
+				response: `{"result":"http://localhost:8080/urlAlreadyExistHash"}`,
 			},
 		},
 	}

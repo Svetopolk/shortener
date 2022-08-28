@@ -12,7 +12,6 @@ import (
 	"time"
 
 	"github.com/Svetopolk/shortener/internal/app/service"
-	"github.com/Svetopolk/shortener/internal/app/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -216,12 +215,12 @@ func unzip(original string) string {
 	reader := bytes.NewReader([]byte(original))
 	gzReader, err := gzip.NewReader(reader)
 	if err != nil {
-		log.Println("error while unzip", err)
+		log.Println("exceptions while unzip", err)
 		return ""
 	}
 	output, err := ioutil.ReadAll(gzReader)
 	if err != nil {
-		log.Println("error while unzip", err)
+		log.Println("exceptions while unzip", err)
 		return ""
 	}
 	return string(output)
@@ -248,7 +247,7 @@ func closeBody(t *testing.T, resp *http.Response) {
 
 func getServer() *httptest.Server {
 	r := NewRouter(NewRequestHandler(
-		service.NewShortService(storage.NewTestStorage()),
+		service.NewMockShortService(),
 		"http://localhost:8080",
 		nil,
 	))

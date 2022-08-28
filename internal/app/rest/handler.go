@@ -2,11 +2,13 @@ package rest
 
 import (
 	"encoding/json"
+	"errors"
 	"io"
 	"log"
 	"net/http"
 	"strconv"
 
+	"github.com/Svetopolk/shortener/internal/app/exceptions"
 	"github.com/Svetopolk/shortener/internal/logging"
 
 	"github.com/Svetopolk/shortener/internal/app/db"
@@ -15,12 +17,12 @@ import (
 )
 
 type RequestHandler struct {
-	service  *service.ShortService
+	service  service.ShortService
 	baseURL  string
 	dbSource *db.Source
 }
 
-func NewRequestHandler(service *service.ShortService, baseURL string, db *db.Source) *RequestHandler {
+func NewRequestHandler(service service.ShortService, baseURL string, db *db.Source) *RequestHandler {
 	logging.Enter()
 	defer logging.Exit()
 
@@ -46,9 +48,13 @@ func (h *RequestHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
-	hash := h.service.Save(string(body))
+	hash, err := h.service.Save(string(body))
+	if errors.Is(err, exceptions.UrlAlreadyExist) {
+		w.WriteHeader(http.StatusConflict)
+	} else {
+		w.WriteHeader(http.StatusCreated)
+	}
 	shortURL := h.makeShortURL(hash)
-	w.WriteHeader(http.StatusCreated)
 	_, err = w.Write([]byte(shortURL))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
@@ -60,7 +66,7 @@ func (h *RequestHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 	defer logging.Exit()
 
 	hash := util.RemoveFirstSymbol(r.URL.Path)
-	fullURL := h.service.Get(hash)
+	fullURL, _ := h.service.Get(hash) //TODO if not found what to do?
 
 	w.Header().Set("Location", fullURL)
 	w.WriteHeader(http.StatusTemporaryRedirect)
@@ -84,15 +90,21 @@ func (h *RequestHandler) handleJSONPost(w http.ResponseWriter, r *http.Request) 
 	if err := json.Unmarshal(resBody, &value); err != nil {
 		log.Println("can not unmarshal body:[", string(resBody), "] ", err)
 	}
-	hash := h.service.Save(value.URL)
+
+	w.Header().Set("Content-Type", "application/json")
+
+	hash, err := h.service.Save(value.URL)
+	if errors.Is(err, exceptions.UrlAlreadyExist) {
+		w.WriteHeader(http.StatusConflict)
+	} else {
+		w.WriteHeader(http.StatusCreated)
+	}
+
 	response := Response{h.makeShortURL(hash)}
 	responseString, err := json.Marshal(response)
 	if err != nil {
 		log.Println("can not marshal response:[", string(resBody), "] ", err)
 	}
-
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(http.StatusCreated)
 
 	_, err = w.Write(responseString)
 	if err != nil {
@@ -114,8 +126,13 @@ func (h *RequestHandler) handleBatch(w http.ResponseWriter, r *http.Request) {
 
 	var batchResponses = make([]BatchResponse, 0, len(batchRequests))
 
+	// TODO make it through batch SaveBatch
 	for i := range batchRequests {
-		hash := h.service.Save(batchRequests[i].OriginalURL)
+		hash, err := h.service.Save(batchRequests[i].OriginalURL)
+		if err != nil {
+			log.Println("unexpected exceptions", err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
 		batchResponse := BatchResponse{batchRequests[i].CorrelationID, h.makeShortURL(hash)}
 		batchResponses = append(batchResponses, batchResponse)
 	}

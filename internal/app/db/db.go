@@ -39,7 +39,7 @@ func (dbSource *Source) Close() error {
 
 	err := dbSource.db.Close()
 	if err != nil {
-		log.Println("error closing connection to DB:", err)
+		log.Println("exceptions closing connection to DB:", err)
 	}
 	return err
 }
@@ -63,7 +63,10 @@ func (dbSource *Source) InitTables() {
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
-	_, err := dbSource.db.ExecContext(ctx, "create table urls (hash varchar(30) not null constraint urls_pk primary key, url varchar(500))")
+	_, err := dbSource.db.ExecContext(ctx, `
+        create table urls (hash varchar(30) not null constraint urls_pk primary key, url varchar(500));
+		create unique index urls_url_uindex on urls (url);
+    `)
 	if err != nil {
 		log.Println("init tables are NOT created - ", err)
 		return
@@ -71,7 +74,7 @@ func (dbSource *Source) InitTables() {
 	log.Println("init tables are created")
 }
 
-func (dbSource *Source) Save(hash string, url string) {
+func (dbSource *Source) Save(hash string, url string) error {
 	logging.Enter()
 	defer logging.Exit()
 
@@ -82,8 +85,10 @@ func (dbSource *Source) Save(hash string, url string) {
 	row, err := dbSource.db.ExecContext(ctx, "insert into urls (hash, url) values ($1, $2)", hash, url)
 	if err != nil {
 		log.Println("error while Save:", err)
+		return err
 	}
 	log.Println("db.Saved ", row)
+	return nil
 }
 
 func (dbSource *Source) SaveBatch(hashes []string, urls []string) error {
@@ -132,6 +137,7 @@ func (dbSource *Source) Get(hash string) (string, bool) {
 	}
 	return url, true
 }
+
 func (dbSource *Source) GetAll() map[string]string {
 	Limit := 2000
 
@@ -166,4 +172,24 @@ func (dbSource *Source) GetAll() map[string]string {
 		return data
 	}
 	return data
+}
+
+func (dbSource *Source) GetHashByURL(url string) (string, bool) {
+	logging.Enter()
+	defer logging.Exit()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	var hash string
+	row := dbSource.db.QueryRowContext(ctx, "select hash from urls where url = $1", url)
+	err := row.Scan(&hash)
+	if err != nil {
+		if errors.Is(err, sql.ErrNoRows) {
+			log.Println("Get hash from DB return nothing:", err)
+			return "", false
+		}
+		log.Println("exceptions while Get hash from DB:", err)
+	}
+	return hash, true
 }

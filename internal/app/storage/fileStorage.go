@@ -32,7 +32,7 @@ func NewFileStorage(fileStoragePath string) *FileStorage {
 	return &FileStorage{data: mapStore, fileStoragePath: fileStoragePath, producer: fileProducer}
 }
 
-func (s *FileStorage) Save(hash string, url string) string {
+func (s *FileStorage) Save(hash string, url string) (string, error) {
 	logging.Enter()
 	defer logging.Exit()
 
@@ -40,15 +40,20 @@ func (s *FileStorage) Save(hash string, url string) string {
 	defer s.mtx.Unlock()
 	s.data[hash] = url
 	s.writeToFile(hash, url)
-	return hash
+	return hash, nil
 }
 
-func (s *FileStorage) SaveBatch(hashes []string, urls []string) []string {
+func (s *FileStorage) SaveBatch(hashes []string, urls []string) ([]string, error) {
 	values := make([]string, 0, len(hashes))
+
 	for i := range hashes {
-		values = append(values, s.Save(hashes[i], urls[i]))
+		save, err := s.Save(hashes[i], urls[i])
+		if err != nil {
+			return values, err
+		}
+		values = append(values, save)
 	}
-	return values
+	return values, nil
 }
 
 func (s *FileStorage) Get(hash string) (string, bool) {

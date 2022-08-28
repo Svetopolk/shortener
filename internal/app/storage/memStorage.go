@@ -20,22 +20,23 @@ func NewMemStorage() *MemStorage {
 	return &MemStorage{data: make(map[string]string)}
 }
 
-func (s *MemStorage) Save(hash string, url string) string {
+func (s *MemStorage) Save(hash string, url string) (string, error) {
 	logging.Enter()
 	defer logging.Exit()
 
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 	s.data[hash] = url
-	return hash
+	return hash, nil
 }
 
-func (s *MemStorage) SaveBatch(hashes []string, urls []string) []string {
+func (s *MemStorage) SaveBatch(hashes []string, urls []string) ([]string, error) {
 	values := make([]string, 0, len(hashes))
 	for i := range hashes {
-		values = append(values, s.Save(hashes[i], urls[i]))
+		hash, _ := s.Save(hashes[i], urls[i])
+		values = append(values, hash)
 	}
-	return values
+	return values, nil
 }
 
 func (s *MemStorage) Get(hash string) (string, bool) {

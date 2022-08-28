@@ -1,7 +1,10 @@
 package storage
 
 import (
+	"strings"
+
 	"github.com/Svetopolk/shortener/internal/app/db"
+	"github.com/Svetopolk/shortener/internal/app/exceptions"
 	"github.com/Svetopolk/shortener/internal/logging"
 )
 
@@ -19,19 +22,36 @@ func NewDBStorage(db *db.Source) *DBStorage {
 	return &DBStorage{dbSource: db}
 }
 
-func (s *DBStorage) Save(hash string, url string) string {
-	_, ok := s.dbSource.Get(hash)
-	if ok {
-		return hash
+func (s *DBStorage) Save(hash string, url string) (string, error) {
+	err := s.dbSource.Save(hash, url)
+	if err != nil {
+		if isHashUniqueViolation(err) {
+			return hash, exceptions.HashAlreadyExist
+		}
+		if isUrlUniqueViolation(err) {
+			oldHash, ok := s.dbSource.GetHashByURL(url)
+			if ok {
+				return oldHash, exceptions.UrlAlreadyExist
+			}
+			return "", err // somebody deleted url form db?
+		}
+		return "", err //unexpected error
 	}
-	s.dbSource.Save(hash, url)
-	return hash
+	return hash, nil
 }
 
-func (s *DBStorage) SaveBatch(hashes []string, urls []string) []string {
+func isHashUniqueViolation(err error) bool {
+	return strings.Contains(err.Error(), "urls_pk")
+}
+
+func isUrlUniqueViolation(err error) bool {
+	return strings.Contains(err.Error(), "urls_url_uindex")
+}
+
+func (s *DBStorage) SaveBatch(hashes []string, urls []string) ([]string, error) {
 	// TODO there is no collision hashed check
 	s.dbSource.SaveBatch(hashes, urls)
-	return hashes
+	return hashes, nil
 }
 
 func (s *DBStorage) Get(hash string) (string, bool) {

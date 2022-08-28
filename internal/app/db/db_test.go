@@ -1,48 +1,122 @@
 package db
 
 import (
+	"context"
+	"log"
 	"testing"
+	"time"
 
 	"github.com/Svetopolk/shortener/internal/app/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
 
-func TestPingWrongPort(t *testing.T) {
+//before run this otherwise most tests will be ignored
+//docker run --name postgresql -e POSTGRES_USER=shortener -e POSTGRES_PASSWORD=pass -p 5432:5432 -d postgres
+
+func TestPingWrongDBPort(t *testing.T) {
 	db, err := NewDB("postgres://shortener:pass@localhost:5433/shortener")
 	require.NoError(t, err)
 	err = db.Ping()
 	require.Error(t, err)
 }
 
-//before run this
-//docker run --name postgresql -e POSTGRES_USER=shortener -e POSTGRES_PASSWORD=pass -p 5432:5432 -d postgres
+func TestPingOk(t *testing.T) {
+	db := initDbStorage(t)
 
-func _TestPingOk(t *testing.T) {
-	db, err := NewDB("postgres://shortener:pass@localhost:5432/shortener")
-	require.NoError(t, err)
-	err = db.Ping()
+	err := db.Ping()
 	require.NoError(t, err)
 }
 
-func _TestSaveGet(t *testing.T) {
-	db, err := NewDB("postgres://shortener:pass@localhost:5432/shortener")
-	require.NoError(t, err)
+func TestSaveGet(t *testing.T) {
+	db := initDbStorage(t)
 
 	hash := util.RandomString(5)
+	url := "https://" + util.RandomString(5)
 
-	db.Save(hash, "someUrl")
+	db.Save(hash, url)
 
-	urlFromDB, _ := db.Get(hash)
-	assert.Equal(t, "someUrl", urlFromDB)
+	urlFromDB, ok := db.Get(hash)
+	assert.True(t, ok)
+	assert.Equal(t, url, urlFromDB)
 }
 
-func _TestGetEmpty(t *testing.T) {
-	db, err := NewDB("postgres://shortener:pass@localhost:5432/shortener")
-	require.NoError(t, err)
+func TestGetEmpty(t *testing.T) {
+	db := initDbStorage(t)
 
 	hash := util.RandomString(5)
 
-	urlFromDB, _ := db.Get(hash)
-	assert.Equal(t, "someUrl", urlFromDB)
+	urlFromDB, ok := db.Get(hash)
+	assert.False(t, ok)
+	assert.Equal(t, "", urlFromDB)
+}
+
+func TestSaveSameHash(t *testing.T) {
+	db := initDbStorage(t)
+
+	hash := util.RandomString(5)
+	url1 := "https://" + util.RandomString(5)
+	url2 := "https://" + util.RandomString(5)
+
+	err1 := db.Save(hash, url1)
+	assert.Nil(t, err1)
+
+	err2 := db.Save(hash, url2)
+	assert.NotNil(t, err2)
+	assert.Contains(t, err2.Error(), "urls_pk")
+}
+
+func TestSaveSameUrl(t *testing.T) {
+	db := initDbStorage(t)
+
+	hash := util.RandomString(5)
+	url1 := "https://" + util.RandomString(5)
+
+	err1 := db.Save(hash, url1)
+	assert.Nil(t, err1)
+
+	hash2 := util.RandomString(5)
+
+	err2 := db.Save(hash2, url1)
+	assert.NotNil(t, err2)
+	assert.Contains(t, err2.Error(), "urls_url_uindex")
+}
+
+func TestSave_GetHashByURL(t *testing.T) {
+	db := initDbStorage(t)
+
+	hash1 := util.RandomString(5)
+	url := "https://" + util.RandomString(5)
+
+	err1 := db.Save(hash1, url)
+	assert.Nil(t, err1)
+
+	hash2, ok := db.GetHashByURL(url)
+	assert.True(t, ok)
+	assert.Equal(t, hash1, hash2)
+}
+
+func TestSave_GetHashByURL_Empty(t *testing.T) {
+	db := initDbStorage(t)
+
+	url := "https://" + util.RandomString(5)
+
+	hash, ok := db.GetHashByURL(url)
+	assert.False(t, ok)
+	assert.Equal(t, "", hash)
+}
+
+func initDbStorage(t *testing.T) *Source {
+	db, err := NewDB("postgres://shortener:pass@localhost:5432/shortener")
+	if err != nil {
+		t.Skip("no db connection")
+	}
+	ctx, _ := context.WithTimeout(context.Background(), 1*time.Second)
+	err = db.db.PingContext(ctx)
+
+	if err != nil {
+		log.Println("exceptions while ping DB:", err)
+		t.Skip("no db connection")
+	}
+	return db
 }
