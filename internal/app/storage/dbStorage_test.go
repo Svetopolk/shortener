@@ -10,7 +10,7 @@ import (
 )
 
 func TestDBStorage(t *testing.T) {
-	storage := initDbStorage(t)
+	storage := initDBStorage(t)
 
 	generatedHash1 := util.RandomString(10)
 	url1 := "https://" + generatedHash1
@@ -22,20 +22,20 @@ func TestDBStorage(t *testing.T) {
 	url2 := "https://" + util.RandomString(10)
 	savedHash2, err2 := storage.Save(generatedHash1, url2)
 	assert.NotNil(t, err2)
-	assert.Error(t, exceptions.HashAlreadyExist, err2)
+	assert.Error(t, exceptions.ErrHashAlreadyExist, err2)
 	assert.Equal(t, generatedHash1, savedHash2)
 
 	// save same url with new hash
 	generatedHash3 := util.RandomString(10)
 	savedHash3, err3 := storage.Save(generatedHash3, url1)
 	assert.NotNil(t, err3)
-	assert.Error(t, exceptions.UrlAlreadyExist, err3)
+	assert.Error(t, exceptions.ErrURLAlreadyExist, err3)
 	assert.NotEqual(t, generatedHash1, generatedHash3)
 	assert.Equal(t, generatedHash1, savedHash3)
 
-	savedUrl1, ok := storage.Get(savedHash1)
+	savedURL1, ok := storage.Get(savedHash1)
 	assert.True(t, ok)
-	assert.Equal(t, url1, savedUrl1) //old value
+	assert.Equal(t, url1, savedURL1) //old value
 
 	data := storage.GetAll()
 	assert.GreaterOrEqual(t, len(data), 1)
@@ -45,7 +45,7 @@ func TestDBStorage(t *testing.T) {
 }
 
 func TestDBStorageSaveBatch(t *testing.T) {
-	storage := initDbStorage(t)
+	storage := initDBStorage(t)
 
 	hash1 := util.RandomString(10)
 	hash2 := util.RandomString(10)
@@ -56,16 +56,16 @@ func TestDBStorageSaveBatch(t *testing.T) {
 
 	storage.SaveBatch(hashes, urls)
 
-	savedUrl1, ok := storage.Get(hash1)
+	savedURL1, ok := storage.Get(hash1)
 	assert.True(t, ok)
-	assert.Equal(t, url1, savedUrl1)
+	assert.Equal(t, url1, savedURL1)
 
-	savedUrl2, ok := storage.Get(hash2)
+	savedURL2, ok := storage.Get(hash2)
 	assert.True(t, ok)
-	assert.Equal(t, url2, savedUrl2)
+	assert.Equal(t, url2, savedURL2)
 }
 
-func initDbStorage(t *testing.T) *DBStorage {
+func initDBStorage(t *testing.T) *DBStorage {
 	dbSource, err := db.NewDB("postgres://shortener:pass@localhost:5432/shortener")
 
 	if err != nil {

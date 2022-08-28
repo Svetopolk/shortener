@@ -26,12 +26,12 @@ func (s *DBStorage) Save(hash string, url string) (string, error) {
 	err := s.dbSource.Save(hash, url)
 	if err != nil {
 		if isHashUniqueViolation(err) {
-			return hash, exceptions.HashAlreadyExist
+			return hash, exceptions.ErrHashAlreadyExist
 		}
-		if isUrlUniqueViolation(err) {
+		if isURLUniqueViolation(err) {
 			oldHash, ok := s.dbSource.GetHashByURL(url)
 			if ok {
-				return oldHash, exceptions.UrlAlreadyExist
+				return oldHash, exceptions.ErrURLAlreadyExist
 			}
 			return "", err // somebody deleted url form db?
 		}
@@ -44,7 +44,7 @@ func isHashUniqueViolation(err error) bool {
 	return strings.Contains(err.Error(), "urls_pk")
 }
 
-func isUrlUniqueViolation(err error) bool {
+func isURLUniqueViolation(err error) bool {
 	return strings.Contains(err.Error(), "urls_url_uindex")
 }
 

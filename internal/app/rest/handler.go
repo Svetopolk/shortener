@@ -49,7 +49,7 @@ func (h *RequestHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	hash, err := h.service.Save(string(body))
-	if errors.Is(err, exceptions.UrlAlreadyExist) {
+	if errors.Is(err, exceptions.ErrURLAlreadyExist) {
 		w.WriteHeader(http.StatusConflict)
 	} else {
 		w.WriteHeader(http.StatusCreated)
@@ -94,7 +94,7 @@ func (h *RequestHandler) handleJSONPost(w http.ResponseWriter, r *http.Request) 
 	w.Header().Set("Content-Type", "application/json")
 
 	hash, err := h.service.Save(value.URL)
-	if errors.Is(err, exceptions.UrlAlreadyExist) {
+	if errors.Is(err, exceptions.ErrURLAlreadyExist) {
 		w.WriteHeader(http.StatusConflict)
 	} else {
 		w.WriteHeader(http.StatusCreated)

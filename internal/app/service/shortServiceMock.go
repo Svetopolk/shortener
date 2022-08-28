@@ -40,7 +40,7 @@ func (s *MockShortService) Save(url string) (string, error) {
 		return "12345", nil
 	}
 	if url == "https://already.exist" {
-		return "urlAlreadyExistHash", exceptions.UrlAlreadyExist
+		return "urlAlreadyExistHash", exceptions.ErrURLAlreadyExist
 	}
 	return "67890", nil
 }

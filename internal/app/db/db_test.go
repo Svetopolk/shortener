@@ -22,14 +22,14 @@ func TestPingWrongDBPort(t *testing.T) {
 }
 
 func TestPingOk(t *testing.T) {
-	db := initDbStorage(t)
+	db := initDBStorage(t)
 
 	err := db.Ping()
 	require.NoError(t, err)
 }
 
 func TestSaveGet(t *testing.T) {
-	db := initDbStorage(t)
+	db := initDBStorage(t)
 
 	hash := util.RandomString(5)
 	url := "https://" + util.RandomString(5)
@@ -42,7 +42,7 @@ func TestSaveGet(t *testing.T) {
 }
 
 func TestGetEmpty(t *testing.T) {
-	db := initDbStorage(t)
+	db := initDBStorage(t)
 
 	hash := util.RandomString(5)
 
@@ -52,7 +52,7 @@ func TestGetEmpty(t *testing.T) {
 }
 
 func TestSaveSameHash(t *testing.T) {
-	db := initDbStorage(t)
+	db := initDBStorage(t)
 
 	hash := util.RandomString(5)
 	url1 := "https://" + util.RandomString(5)
@@ -67,7 +67,7 @@ func TestSaveSameHash(t *testing.T) {
 }
 
 func TestSaveSameUrl(t *testing.T) {
-	db := initDbStorage(t)
+	db := initDBStorage(t)
 
 	hash := util.RandomString(5)
 	url1 := "https://" + util.RandomString(5)
@@ -83,7 +83,7 @@ func TestSaveSameUrl(t *testing.T) {
 }
 
 func TestSave_GetHashByURL(t *testing.T) {
-	db := initDbStorage(t)
+	db := initDBStorage(t)
 
 	hash1 := util.RandomString(5)
 	url := "https://" + util.RandomString(5)
@@ -97,7 +97,7 @@ func TestSave_GetHashByURL(t *testing.T) {
 }
 
 func TestSave_GetHashByURL_Empty(t *testing.T) {
-	db := initDbStorage(t)
+	db := initDBStorage(t)
 
 	url := "https://" + util.RandomString(5)
 
@@ -106,12 +106,13 @@ func TestSave_GetHashByURL_Empty(t *testing.T) {
 	assert.Equal(t, "", hash)
 }
 
-func initDbStorage(t *testing.T) *Source {
+func initDBStorage(t *testing.T) *Source {
 	db, err := NewDB("postgres://shortener:pass@localhost:5432/shortener")
 	if err != nil {
 		t.Skip("no db connection")
 	}
-	ctx, _ := context.WithTimeout(context.Background(), 1*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
+	defer cancel()
 	err = db.db.PingContext(ctx)
 
 	if err != nil {
