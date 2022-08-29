@@ -3,8 +3,9 @@ package service
 import (
 	"testing"
 
-	"github.com/Svetopolk/shortener/internal/app/storage"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/Svetopolk/shortener/internal/app/storage"
 )
 
 func TestShotServiceSaveGet(t *testing.T) {

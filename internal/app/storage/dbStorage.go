@@ -35,7 +35,7 @@ func (s *DBStorage) Save(hash string, url string) (string, error) {
 			}
 			return oldHash, exceptions.ErrURLAlreadyExist
 		}
-		return "", err //unexpected error
+		return "", err // unexpected error
 	}
 	return hash, nil
 }
@@ -50,13 +50,15 @@ func isURLUniqueViolation(err error) bool {
 
 func (s *DBStorage) SaveBatch(hashes []string, urls []string) ([]string, error) {
 	// TODO there is no collision hashed check
-	s.dbSource.SaveBatch(hashes, urls)
+	err := s.dbSource.SaveBatch(hashes, urls)
+	if err != nil {
+		return nil, err
+	}
 	return hashes, nil
 }
 
 func (s *DBStorage) Get(hash string) (string, bool) {
 	return s.dbSource.Get(hash)
-
 }
 
 func (s *DBStorage) GetAll() (map[string]string, error) {

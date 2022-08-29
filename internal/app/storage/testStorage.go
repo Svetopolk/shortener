@@ -1,7 +1,6 @@
 package storage
 
-type TestStorage struct {
-}
+type TestStorage struct{}
 
 var _ Storage = &TestStorage{}
 

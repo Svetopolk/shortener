@@ -3,10 +3,9 @@ package service
 import (
 	"log"
 
-	"github.com/Svetopolk/shortener/internal/logging"
-
 	"github.com/Svetopolk/shortener/internal/app/storage"
 	"github.com/Svetopolk/shortener/internal/app/util"
+	"github.com/Svetopolk/shortener/internal/logging"
 )
 
 var _ ShortService = &ShortServiceImpl{}

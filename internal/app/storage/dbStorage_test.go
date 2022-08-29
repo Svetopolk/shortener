@@ -3,10 +3,11 @@ package storage
 import (
 	"testing"
 
+	"github.com/stretchr/testify/assert"
+
 	"github.com/Svetopolk/shortener/internal/app/db"
 	"github.com/Svetopolk/shortener/internal/app/exceptions"
 	"github.com/Svetopolk/shortener/internal/app/util"
-	"github.com/stretchr/testify/assert"
 )
 
 func TestDBStorage(t *testing.T) {
@@ -35,7 +36,7 @@ func TestDBStorage(t *testing.T) {
 
 	savedURL1, ok := storage.Get(savedHash1)
 	assert.True(t, ok)
-	assert.Equal(t, url1, savedURL1) //old value
+	assert.Equal(t, url1, savedURL1) // old value
 
 	data, err4 := storage.GetAll()
 	assert.Nil(t, err4)
@@ -55,7 +56,9 @@ func TestDBStorageSaveBatch(t *testing.T) {
 	hashes := []string{hash1, hash2}
 	urls := []string{url1, url2}
 
-	storage.SaveBatch(hashes, urls)
+	savedHashes, err := storage.SaveBatch(hashes, urls)
+	assert.Nil(t, err)
+	assert.Equal(t, hashes, savedHashes)
 
 	savedURL1, ok := storage.Get(hash1)
 	assert.True(t, ok)
@@ -68,7 +71,6 @@ func TestDBStorageSaveBatch(t *testing.T) {
 
 func initDBStorage(t *testing.T) *DBStorage {
 	dbSource, err := db.NewDB("postgres://shortener:pass@localhost:5432/shortener")
-
 	if err != nil {
 		t.Error("exceptions when NewDB", err)
 	}

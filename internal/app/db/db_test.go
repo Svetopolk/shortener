@@ -6,13 +6,14 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Svetopolk/shortener/internal/app/util"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Svetopolk/shortener/internal/app/util"
 )
 
-//before run this otherwise most tests will be ignored
-//docker run --name postgresql -e POSTGRES_USER=shortener -e POSTGRES_PASSWORD=pass -p 5432:5432 -d postgres
+// launch docker before run tests otherwise most tests will be ignored
+// docker run --name postgresql -e POSTGRES_USER=shortener -e POSTGRES_PASSWORD=pass -p 5432:5432 -d postgres
 
 func TestPingWrongDBPort(t *testing.T) {
 	db, err := NewDB("postgres://shortener:pass@localhost:5433/shortener")

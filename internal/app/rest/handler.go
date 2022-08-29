@@ -8,12 +8,11 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/Svetopolk/shortener/internal/app/exceptions"
-	"github.com/Svetopolk/shortener/internal/logging"
-
 	"github.com/Svetopolk/shortener/internal/app/db"
+	"github.com/Svetopolk/shortener/internal/app/exceptions"
 	"github.com/Svetopolk/shortener/internal/app/service"
 	"github.com/Svetopolk/shortener/internal/app/util"
+	"github.com/Svetopolk/shortener/internal/logging"
 )
 
 type RequestHandler struct {
@@ -66,7 +65,7 @@ func (h *RequestHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 	defer logging.Exit()
 
 	hash := util.RemoveFirstSymbol(r.URL.Path)
-	fullURL, _ := h.service.Get(hash) //TODO if not found what to do?
+	fullURL, _ := h.service.Get(hash) // TODO if not found what to do?
 
 	w.Header().Set("Location", fullURL)
 	w.WriteHeader(http.StatusTemporaryRedirect)
@@ -124,7 +123,7 @@ func (h *RequestHandler) handleBatch(w http.ResponseWriter, r *http.Request) {
 		log.Println("can not unmarshal body:[", string(resBody), "] ", err)
 	}
 
-	var batchResponses = make([]BatchResponse, 0, len(batchRequests))
+	batchResponses := make([]BatchResponse, 0, len(batchRequests))
 
 	// TODO make it through batch SaveBatch
 	for i := range batchRequests {
@@ -208,7 +207,6 @@ func (h *RequestHandler) handlePing(w http.ResponseWriter, r *http.Request) {
 	}
 
 	err := h.dbSource.Ping()
-
 	if err != nil {
 		w.WriteHeader(http.StatusInternalServerError)
 		log.Println("db ping error:", err)

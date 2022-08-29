@@ -84,7 +84,7 @@ func checkDirExistOrCreate(fileStoragePath string) {
 		return
 	}
 	if _, err := os.Stat(fileStoragePath); os.IsNotExist(err) {
-		err := os.MkdirAll(dir, 0700)
+		err := os.MkdirAll(dir, 0o700)
 		if err != nil {
 			log.Println("error accessing file system:", err)
 		}

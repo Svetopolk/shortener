@@ -7,8 +7,7 @@ import (
 
 var _ ShortService = &MockShortService{}
 
-type MockShortService struct {
-}
+type MockShortService struct{}
 
 func NewMockShortService() *MockShortService {
 	return &MockShortService{}
@@ -21,7 +20,6 @@ func (s *MockShortService) Get(hash string) (string, bool) {
 		return "https://ya.ru", true
 	}
 	return "", false
-
 }
 
 func (s *MockShortService) GetAll() (map[string]string, error) {
@@ -48,7 +46,6 @@ func (s *MockShortService) Save(url string) (string, error) {
 func (s *MockShortService) SaveBatch(hashes []string, urls []string) ([]string, error) {
 	values := make([]string, 0, len(hashes))
 	for i := range hashes {
-
 		values = append(values, hashes[i])
 	}
 	return values, nil

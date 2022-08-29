@@ -7,8 +7,9 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Svetopolk/shortener/internal/app/service"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/Svetopolk/shortener/internal/app/service"
 )
 
 func TestStatusHandler(t *testing.T) {
@@ -127,7 +128,6 @@ func TestStatusHandler(t *testing.T) {
 			if resBody != tt.want.response {
 				t.Errorf("Expected body %s, got %s", tt.want.response, w.Body.String())
 			}
-
 		})
 	}
 }

@@ -146,7 +146,7 @@ func (dbSource *Source) GetAll() (map[string]string, error) {
 
 	var hash string
 	var url string
-	var data = make(map[string]string)
+	data := make(map[string]string)
 
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()

@@ -11,9 +11,10 @@ import (
 	"testing"
 	"time"
 
-	"github.com/Svetopolk/shortener/internal/app/service"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Svetopolk/shortener/internal/app/service"
 )
 
 func TestGetPositive(t *testing.T) {
@@ -123,7 +124,6 @@ func TestGetAllCookiePresent(t *testing.T) {
 	assert.Equal(t, "userID", cookie.Name)
 	assert.Equal(t, 72, len(cookie.Value))
 	closeBody(t, resp)
-
 }
 
 func TestGetAllCookieMissed(t *testing.T) {

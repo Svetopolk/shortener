@@ -3,9 +3,9 @@ package rest
 import (
 	"net/http"
 
-	"github.com/Svetopolk/shortener/internal/logging"
-
 	"github.com/go-chi/chi/v5"
+
+	"github.com/Svetopolk/shortener/internal/logging"
 )
 
 func NewRouter(m *RequestHandler) chi.Router {
