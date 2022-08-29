@@ -66,13 +66,13 @@ func (s *FileStorage) Get(hash string) (string, bool) {
 	return value, ok
 }
 
-func (s *FileStorage) GetAll() map[string]string {
+func (s *FileStorage) GetAll() (map[string]string, error) {
 	logging.Enter()
 	defer logging.Exit()
 
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
-	return s.data
+	return s.data, nil
 }
 
 func checkDirExistOrCreate(fileStoragePath string) {

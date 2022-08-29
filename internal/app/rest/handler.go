@@ -169,7 +169,14 @@ func (h *RequestHandler) getUserUrls(w http.ResponseWriter, r *http.Request) {
 	}
 	log.Println(strconv.Itoa(int(userID)) + " userID found")
 
-	pairs := h.service.GetAll()
+	pairs, err3 := h.service.GetAll()
+
+	if err3 != nil {
+		log.Println("err when get data from storage", err3)
+		w.WriteHeader(http.StatusNoContent)
+		return
+	}
+
 	var list []ListResponse
 
 	for hash, value := range pairs {

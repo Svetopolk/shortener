@@ -37,7 +37,8 @@ func TestDBStorage(t *testing.T) {
 	assert.True(t, ok)
 	assert.Equal(t, url1, savedURL1) //old value
 
-	data := storage.GetAll()
+	data, err4 := storage.GetAll()
+	assert.Nil(t, err4)
 	assert.GreaterOrEqual(t, len(data), 1)
 
 	urlFromMap := data[generatedHash1]

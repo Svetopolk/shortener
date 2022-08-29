@@ -31,12 +31,11 @@ func (s *ShortServiceImpl) Get(hash string) (string, bool) {
 	return s.storage.Get(hash)
 }
 
-func (s *ShortServiceImpl) GetAll() map[string]string {
+func (s *ShortServiceImpl) GetAll() (map[string]string, error) {
 	logging.Enter()
 	defer logging.Exit()
 
-	values := s.storage.GetAll()
-	return values
+	return s.storage.GetAll()
 }
 
 func (s *ShortServiceImpl) Save(url string) (string, error) {

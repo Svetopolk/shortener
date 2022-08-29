@@ -30,6 +30,6 @@ func (m *MockStorage) Get(hash string) (string, bool) {
 	return "hashExists", true
 }
 
-func (m *MockStorage) GetAll() map[string]string {
-	return make(map[string]string)
+func (m *MockStorage) GetAll() (map[string]string, error) {
+	return make(map[string]string), nil
 }

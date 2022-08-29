@@ -29,11 +29,11 @@ func (s *DBStorage) Save(hash string, url string) (string, error) {
 			return hash, exceptions.ErrHashAlreadyExist
 		}
 		if isURLUniqueViolation(err) {
-			oldHash, ok := s.dbSource.GetHashByURL(url)
-			if ok {
-				return oldHash, exceptions.ErrURLAlreadyExist
+			oldHash, err2 := s.dbSource.GetHashByURL(url)
+			if err2 != nil {
+				return "", err2 // somebody deleted url form db?
 			}
-			return "", err // somebody deleted url form db?
+			return oldHash, exceptions.ErrURLAlreadyExist
 		}
 		return "", err //unexpected error
 	}
@@ -59,7 +59,6 @@ func (s *DBStorage) Get(hash string) (string, bool) {
 
 }
 
-func (s *DBStorage) GetAll() map[string]string {
-	urls := s.dbSource.GetAll()
-	return urls
+func (s *DBStorage) GetAll() (map[string]string, error) {
+	return s.dbSource.GetAll()
 }

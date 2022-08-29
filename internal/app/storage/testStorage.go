@@ -35,8 +35,8 @@ func (t TestStorage) Get(hash string) (string, bool) {
 	return "", false
 }
 
-func (t TestStorage) GetAll() map[string]string {
+func (t TestStorage) GetAll() (map[string]string, error) {
 	data := make(map[string]string)
 	data["12345"] = "https://ya.ru"
-	return data
+	return data, nil
 }

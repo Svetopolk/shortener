@@ -91,8 +91,8 @@ func TestSave_GetHashByURL(t *testing.T) {
 	err1 := db.Save(hash1, url)
 	assert.Nil(t, err1)
 
-	hash2, ok := db.GetHashByURL(url)
-	assert.True(t, ok)
+	hash2, err2 := db.GetHashByURL(url)
+	assert.Nil(t, err2)
 	assert.Equal(t, hash1, hash2)
 }
 
@@ -101,9 +101,26 @@ func TestSave_GetHashByURL_Empty(t *testing.T) {
 
 	url := "https://" + util.RandomString(5)
 
-	hash, ok := db.GetHashByURL(url)
-	assert.False(t, ok)
+	hash, err := db.GetHashByURL(url)
+	assert.NotNil(t, err)
 	assert.Equal(t, "", hash)
+}
+
+func TestGetAll(t *testing.T) {
+	db := initDBStorage(t)
+
+	hash1 := util.RandomString(5)
+	hash2 := util.RandomString(5)
+	url1 := "https://" + hash1
+	url2 := "https://" + hash2
+
+	db.Save(hash1, url1)
+	db.Save(hash2, url2)
+
+	data, err := db.GetAll()
+	assert.Nil(t, err)
+	assert.Equal(t, data[hash1], url1)
+	assert.Equal(t, data[hash2], url2)
 }
 
 func initDBStorage(t *testing.T) *Source {

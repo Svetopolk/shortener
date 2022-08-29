@@ -7,9 +7,9 @@ import (
 	"log"
 	"time"
 
-	"github.com/Svetopolk/shortener/internal/logging"
-
 	_ "github.com/jackc/pgx/v4/stdlib"
+
+	"github.com/Svetopolk/shortener/internal/logging"
 )
 
 type Source struct {
@@ -138,7 +138,7 @@ func (dbSource *Source) Get(hash string) (string, bool) {
 	return url, true
 }
 
-func (dbSource *Source) GetAll() map[string]string {
+func (dbSource *Source) GetAll() (map[string]string, error) {
 	Limit := 2000
 
 	logging.Enter()
@@ -154,7 +154,7 @@ func (dbSource *Source) GetAll() map[string]string {
 	rows, err := dbSource.db.QueryContext(ctx, "select hash, url from urls limit $1", Limit)
 	if err != nil {
 		log.Println(err)
-		return data
+		return data, err
 	}
 
 	defer rows.Close()
@@ -163,18 +163,18 @@ func (dbSource *Source) GetAll() map[string]string {
 		err = rows.Scan(&hash, &url)
 		if err != nil {
 			log.Println(err)
-			return data
+			return data, err
 		}
 		data[hash] = url
 	}
 	err = rows.Err()
 	if err != nil {
-		return data
+		return data, err
 	}
-	return data
+	return data, nil
 }
 
-func (dbSource *Source) GetHashByURL(url string) (string, bool) {
+func (dbSource *Source) GetHashByURL(url string) (string, error) {
 	logging.Enter()
 	defer logging.Exit()
 
@@ -187,9 +187,9 @@ func (dbSource *Source) GetHashByURL(url string) (string, bool) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			log.Println("Get hash from DB return nothing:", err)
-			return "", false
+			return "", err
 		}
 		log.Println("exceptions while Get hash from DB:", err)
 	}
-	return hash, true
+	return hash, nil
 }

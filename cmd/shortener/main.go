@@ -5,14 +5,13 @@ import (
 	"log"
 	"net/http"
 
-	"github.com/Svetopolk/shortener/internal/logging"
-
-	"github.com/Svetopolk/shortener/internal/app/db"
 	"github.com/caarlos0/env/v6"
 
+	"github.com/Svetopolk/shortener/internal/app/db"
 	"github.com/Svetopolk/shortener/internal/app/rest"
 	"github.com/Svetopolk/shortener/internal/app/service"
 	"github.com/Svetopolk/shortener/internal/app/storage"
+	"github.com/Svetopolk/shortener/internal/logging"
 )
 
 type Config struct {

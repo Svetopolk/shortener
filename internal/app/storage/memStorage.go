@@ -49,11 +49,11 @@ func (s *MemStorage) Get(hash string) (string, bool) {
 	return value, ok
 }
 
-func (s *MemStorage) GetAll() map[string]string {
+func (s *MemStorage) GetAll() (map[string]string, error) {
 	logging.Enter()
 	defer logging.Exit()
 
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
-	return s.data
+	return s.data, nil
 }

@@ -24,12 +24,12 @@ func (s *MockShortService) Get(hash string) (string, bool) {
 
 }
 
-func (s *MockShortService) GetAll() map[string]string {
+func (s *MockShortService) GetAll() (map[string]string, error) {
 	logging.Enter()
 	defer logging.Exit()
 	data := make(map[string]string)
 	data["12345"] = "https://ya.ru"
-	return data
+	return data, nil
 }
 
 func (s *MockShortService) Save(url string) (string, error) {
