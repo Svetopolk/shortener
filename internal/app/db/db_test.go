@@ -34,7 +34,7 @@ func TestSaveGet(t *testing.T) {
 	hash := util.RandomString(5)
 	url := "https://" + util.RandomString(5)
 
-	db.Save(hash, url)
+	assert.Nil(t, db.Save(hash, url))
 
 	urlFromDB, ok := db.Get(hash)
 	assert.True(t, ok)
@@ -114,8 +114,8 @@ func TestGetAll(t *testing.T) {
 	url1 := "https://" + hash1
 	url2 := "https://" + hash2
 
-	db.Save(hash1, url1)
-	db.Save(hash2, url2)
+	assert.Nil(t, db.Save(hash1, url1))
+	assert.Nil(t, db.Save(hash2, url2))
 
 	data, err := db.GetAll()
 	assert.Nil(t, err)
