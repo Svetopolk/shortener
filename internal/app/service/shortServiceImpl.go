@@ -1,8 +1,10 @@
 package service
 
 import (
+	"errors"
 	"log"
 
+	"github.com/Svetopolk/shortener/internal/app/exceptions"
 	"github.com/Svetopolk/shortener/internal/app/storage"
 	"github.com/Svetopolk/shortener/internal/app/util"
 	"github.com/Svetopolk/shortener/internal/logging"
@@ -22,7 +24,7 @@ func NewShortService(storage storage.Storage) *ShortServiceImpl {
 	return &ShortServiceImpl{storage: storage, initialHashLength: 6}
 }
 
-func (s *ShortServiceImpl) Get(hash string) (string, bool) {
+func (s *ShortServiceImpl) Get(hash string) (string, error) {
 	logging.Enter()
 	defer logging.Exit()
 
@@ -64,10 +66,14 @@ func (s *ShortServiceImpl) checkOrChange(hash string) string {
 	logging.Enter()
 	defer logging.Exit()
 
-	if _, ok := s.storage.Get(hash); !ok {
-		return hash
+	_, err := s.storage.Get(hash)
+	if err != nil {
+		if errors.Is(err, exceptions.ErrURLNotFound) {
+			return hash
+		} else {
+			log.Fatal("unexpected error", err)
+		}
 	}
-
 	newHash := hash + util.RandomString(1)
 	log.Printf("hash %s already exist, generate a new one %s", hash, newHash)
 	return s.checkOrChange(newHash)

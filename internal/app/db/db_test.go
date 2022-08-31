@@ -37,8 +37,8 @@ func TestSaveGet(t *testing.T) {
 
 	assert.Nil(t, db.Save(hash, url))
 
-	urlFromDB, ok := db.Get(hash)
-	assert.True(t, ok)
+	urlFromDB, err := db.Get(hash)
+	assert.Nil(t, err)
 	assert.Equal(t, url, urlFromDB)
 }
 
@@ -47,8 +47,8 @@ func TestGetEmpty(t *testing.T) {
 
 	hash := util.RandomString(5)
 
-	urlFromDB, ok := db.Get(hash)
-	assert.False(t, ok)
+	urlFromDB, err := db.Get(hash)
+	assert.NotNil(t, err)
 	assert.Equal(t, "", urlFromDB)
 }
 

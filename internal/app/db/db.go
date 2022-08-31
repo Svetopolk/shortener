@@ -119,7 +119,7 @@ func (dbSource *Source) SaveBatch(hashes []string, urls []string) error {
 	return tx.Commit()
 }
 
-func (dbSource *Source) Get(hash string) (string, bool) {
+func (dbSource *Source) Get(hash string) (string, error) {
 	logging.Enter()
 	defer logging.Exit()
 
@@ -131,11 +131,11 @@ func (dbSource *Source) Get(hash string) (string, bool) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			log.Println("Get from DB return nothing:", err)
-			return "", false
+			return "", err
 		}
 		log.Println("error while Get from DB:", err)
 	}
-	return url, true
+	return url, nil
 }
 
 func (dbSource *Source) GetAll() (map[string]string, error) {

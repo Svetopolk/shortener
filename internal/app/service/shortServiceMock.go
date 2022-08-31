@@ -13,13 +13,13 @@ func NewMockShortService() *MockShortService {
 	return &MockShortService{}
 }
 
-func (s *MockShortService) Get(hash string) (string, bool) {
+func (s *MockShortService) Get(hash string) (string, error) {
 	logging.Enter()
 	defer logging.Exit()
 	if hash == "12345" {
-		return "https://ya.ru", true
+		return "https://ya.ru", nil
 	}
-	return "", false
+	return "", exceptions.ErrURLNotFound
 }
 
 func (s *MockShortService) GetAll() (map[string]string, error) {

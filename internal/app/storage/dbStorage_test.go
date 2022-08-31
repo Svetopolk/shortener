@@ -34,8 +34,8 @@ func TestDBStorage(t *testing.T) {
 	assert.NotEqual(t, generatedHash1, generatedHash3)
 	assert.Equal(t, generatedHash1, savedHash3)
 
-	savedURL1, ok := storage.Get(savedHash1)
-	assert.True(t, ok)
+	savedURL1, err := storage.Get(savedHash1)
+	assert.Nil(t, err)
 	assert.Equal(t, url1, savedURL1) // old value
 
 	data, err4 := storage.GetAll()
@@ -60,12 +60,12 @@ func TestDBStorageSaveBatch(t *testing.T) {
 	assert.Nil(t, err)
 	assert.Equal(t, hashes, savedHashes)
 
-	savedURL1, ok := storage.Get(hash1)
-	assert.True(t, ok)
+	savedURL1, err1 := storage.Get(hash1)
+	assert.Nil(t, err1)
 	assert.Equal(t, url1, savedURL1)
 
-	savedURL2, ok := storage.Get(hash2)
-	assert.True(t, ok)
+	savedURL2, err2 := storage.Get(hash2)
+	assert.Nil(t, err2)
 	assert.Equal(t, url2, savedURL2)
 }
 

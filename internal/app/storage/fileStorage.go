@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"sync"
 
+	"github.com/Svetopolk/shortener/internal/app/exceptions"
 	"github.com/Svetopolk/shortener/internal/logging"
 )
 
@@ -56,14 +57,17 @@ func (s *FileStorage) SaveBatch(hashes []string, urls []string) ([]string, error
 	return values, nil
 }
 
-func (s *FileStorage) Get(hash string) (string, bool) {
+func (s *FileStorage) Get(hash string) (string, error) {
 	logging.Enter()
 	defer logging.Exit()
 
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 	value, ok := s.data[hash]
-	return value, ok
+	if ok {
+		return value, nil
+	}
+	return value, exceptions.ErrURLNotFound
 }
 
 func (s *FileStorage) GetAll() (map[string]string, error) {

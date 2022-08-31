@@ -1,5 +1,7 @@
 package storage
 
+import "github.com/Svetopolk/shortener/internal/app/exceptions"
+
 type TestStorage struct{}
 
 var _ Storage = &TestStorage{}
@@ -27,11 +29,11 @@ func (t *TestStorage) SaveBatch(hashes []string, urls []string) ([]string, error
 	return values, nil
 }
 
-func (t TestStorage) Get(hash string) (string, bool) {
+func (t TestStorage) Get(hash string) (string, error) {
 	if hash == "12345" {
-		return "https://ya.ru", true
+		return "https://ya.ru", nil
 	}
-	return "", false
+	return "", exceptions.ErrURLNotFound
 }
 
 func (t TestStorage) GetAll() (map[string]string, error) {

@@ -65,11 +65,13 @@ func (h *RequestHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 	defer logging.Exit()
 
 	hash := util.RemoveFirstSymbol(r.URL.Path)
-	fullURL, _ := h.service.Get(hash) // TODO if not found what to do?
-
+	fullURL, err := h.service.Get(hash)
+	if err != nil {
+		fullURL = "" // TODO if not found what to do?
+	}
 	w.Header().Set("Location", fullURL)
 	w.WriteHeader(http.StatusTemporaryRedirect)
-	_, err := w.Write([]byte("redirect to " + fullURL))
+	_, err = w.Write([]byte("redirect to " + fullURL))
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 	}

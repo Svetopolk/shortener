@@ -1,6 +1,10 @@
 package storage
 
-import "log"
+import (
+	"log"
+
+	"github.com/Svetopolk/shortener/internal/app/exceptions"
+)
 
 type MockStorage struct {
 	requestCount int
@@ -21,13 +25,13 @@ func (m *MockStorage) SaveBatch(hashes []string, urls []string) ([]string, error
 	return values, nil
 }
 
-func (m *MockStorage) Get(hash string) (string, bool) {
+func (m *MockStorage) Get(hash string) (string, error) {
 	log.Default().Println("mock storage get with hash: ", hash)
 	if m.requestCount > 0 {
-		return "", false
+		return "", exceptions.ErrURLNotFound
 	}
 	m.requestCount++
-	return "hashExists", true
+	return "hashExists", nil
 }
 
 func (m *MockStorage) GetAll() (map[string]string, error) {

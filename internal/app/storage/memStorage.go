@@ -3,6 +3,7 @@ package storage
 import (
 	"sync"
 
+	"github.com/Svetopolk/shortener/internal/app/exceptions"
 	"github.com/Svetopolk/shortener/internal/logging"
 )
 
@@ -39,14 +40,17 @@ func (s *MemStorage) SaveBatch(hashes []string, urls []string) ([]string, error)
 	return values, nil
 }
 
-func (s *MemStorage) Get(hash string) (string, bool) {
+func (s *MemStorage) Get(hash string) (string, error) {
 	logging.Enter()
 	defer logging.Exit()
 
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 	value, ok := s.data[hash]
-	return value, ok
+	if ok {
+		return value, nil
+	}
+	return value, exceptions.ErrURLNotFound
 }
 
 func (s *MemStorage) GetAll() (map[string]string, error) {

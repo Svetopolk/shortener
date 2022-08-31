@@ -57,7 +57,7 @@ func (s *DBStorage) SaveBatch(hashes []string, urls []string) ([]string, error) 
 	return hashes, nil
 }
 
-func (s *DBStorage) Get(hash string) (string, bool) {
+func (s *DBStorage) Get(hash string) (string, error) {
 	return s.dbSource.Get(hash)
 }
 
