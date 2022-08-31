@@ -9,6 +9,7 @@ import (
 
 	_ "github.com/jackc/pgx/v4/stdlib"
 
+	"github.com/Svetopolk/shortener/internal/app/exceptions"
 	"github.com/Svetopolk/shortener/internal/logging"
 )
 
@@ -131,7 +132,7 @@ func (dbSource *Source) Get(hash string) (string, error) {
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			log.Println("Get from DB return nothing:", err)
-			return "", err
+			return "", exceptions.ErrURLNotFound
 		}
 		log.Println("error while Get from DB:", err)
 	}

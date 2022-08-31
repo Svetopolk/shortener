@@ -9,6 +9,7 @@ import (
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 
+	"github.com/Svetopolk/shortener/internal/app/exceptions"
 	"github.com/Svetopolk/shortener/internal/app/util"
 )
 
@@ -49,6 +50,7 @@ func TestGetEmpty(t *testing.T) {
 
 	urlFromDB, err := db.Get(hash)
 	assert.NotNil(t, err)
+	assert.Equal(t, exceptions.ErrURLNotFound, err)
 	assert.Equal(t, "", urlFromDB)
 }
 
