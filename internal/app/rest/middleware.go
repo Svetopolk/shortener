@@ -6,6 +6,7 @@ import (
 	"log"
 	"net/http"
 	"strings"
+	"time"
 )
 
 var _ http.ResponseWriter = gzipWriter{}
@@ -70,4 +71,30 @@ func gzipRequestHandle(next http.Handler) http.Handler {
 		r.Body = gzipRequestBody{ReadCloser: gz}
 		next.ServeHTTP(w, r)
 	})
+}
+
+const userIDCookieName = "userID"
+
+func userIDCookieHandle(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		userIDCookie, err := r.Cookie(userIDCookieName)
+		newUserIDCookie := userIDCookie
+		if err != nil {
+			newUserIDCookie = generateNewCookie()
+		} else {
+			_, err2 := decodeID(userIDCookie.Value)
+			if err2 != nil {
+				newUserIDCookie = generateNewCookie()
+			}
+		}
+		http.SetCookie(w, newUserIDCookie)
+		next.ServeHTTP(w, r)
+	})
+}
+
+func generateNewCookie() *http.Cookie {
+	expiration := time.Now().Add(365 * 24 * time.Hour)
+	value := getSignedUserID()
+	cookie := http.Cookie{Name: userIDCookieName, Value: value, Expires: expiration}
+	return &cookie
 }

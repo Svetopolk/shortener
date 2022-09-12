@@ -7,13 +7,17 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/Svetopolk/shortener/internal/app/service"
-	"github.com/Svetopolk/shortener/internal/app/storage"
 	"github.com/stretchr/testify/assert"
+
+	"github.com/Svetopolk/shortener/internal/app/service"
 )
 
 func TestStatusHandler(t *testing.T) {
-	h := NewRequestHandler(service.NewShortService(storage.NewTestStorage()), "http://localhost:8080")
+	h := NewRequestHandler(
+		service.NewMockShortService(),
+		"http://localhost:8080",
+		nil,
+	)
 	type want struct {
 		code        int
 		response    string
@@ -81,6 +85,19 @@ func TestStatusHandler(t *testing.T) {
 				response: `{"result":"http://localhost:8080/12345"}`,
 			},
 		},
+
+		{
+			name: "POST url",
+			request: request{
+				method: http.MethodPost,
+				path:   "/api/shorten",
+				body:   `{"url":"https://already.exist"}`,
+			},
+			want: want{
+				code:     409,
+				response: `{"result":"http://localhost:8080/urlAlreadyExistHash"}`,
+			},
+		},
 	}
 
 	for _, tt := range tests {
@@ -111,7 +128,6 @@ func TestStatusHandler(t *testing.T) {
 			if resBody != tt.want.response {
 				t.Errorf("Expected body %s, got %s", tt.want.response, w.Body.String())
 			}
-
 		})
 	}
 }

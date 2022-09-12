@@ -3,18 +3,18 @@ package rest
 import (
 	"bytes"
 	"compress/gzip"
-	"io"
 	"io/ioutil"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"strings"
 	"testing"
+	"time"
 
-	"github.com/Svetopolk/shortener/internal/app/service"
-	"github.com/Svetopolk/shortener/internal/app/storage"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+
+	"github.com/Svetopolk/shortener/internal/app/service"
 )
 
 func TestGetPositive(t *testing.T) {
@@ -109,6 +109,81 @@ func TestContentEncodingGzip(t *testing.T) {
 	closeBody(t, resp)
 }
 
+func TestGetAllCookiePresent(t *testing.T) {
+	ts := getServer()
+	defer ts.Close()
+
+	req, _ := http.NewRequest("GET", ts.URL+"/api/user/urls", strings.NewReader(""))
+	reqCookie := http.Cookie{Name: "userID", Value: "3456", Expires: time.Now().Add(time.Hour)}
+	req.AddCookie(&reqCookie)
+	resp, _ := sendRequest(t, req)
+
+	cookies := resp.Cookies()
+	assert.Equal(t, 1, len(cookies))
+	cookie := cookies[0]
+	assert.Equal(t, "userID", cookie.Name)
+	assert.Equal(t, 72, len(cookie.Value))
+	closeBody(t, resp)
+}
+
+func TestGetAllCookieMissed(t *testing.T) {
+	ts := getServer()
+	defer ts.Close()
+
+	resp, _ := testRequest(t, ts, "GET", "/api/user/urls", "")
+
+	cookies := resp.Cookies()
+	assert.Equal(t, http.StatusNoContent, resp.StatusCode)
+	assert.Equal(t, 1, len(cookies))
+	cookie := cookies[0]
+	assert.Equal(t, "userID", cookie.Name)
+	assert.Equal(t, 72, len(cookie.Value))
+	closeBody(t, resp)
+}
+
+func TestPingDb(t *testing.T) {
+	ts := getServer()
+	defer ts.Close()
+
+	resp, _ := testRequest(t, ts, "GET", "/ping", "")
+
+	assert.Equal(t, http.StatusInternalServerError, resp.StatusCode)
+	closeBody(t, resp)
+}
+
+func TestUserIDCookiePresent(t *testing.T) {
+	ts := getServer()
+	defer ts.Close()
+
+	userID := getSignedUserID()
+	req, _ := http.NewRequest("GET", ts.URL+"/api/user/urls", strings.NewReader(""))
+	reqCookie := http.Cookie{Name: "userID", Value: userID, Expires: time.Now().Add(time.Hour)}
+	req.AddCookie(&reqCookie)
+	resp, _ := sendRequest(t, req)
+
+	cookies := resp.Cookies()
+	assert.Equal(t, 1, len(cookies))
+	cookie := cookies[0]
+	assert.Equal(t, "userID", cookie.Name)
+	assert.Equal(t, userID, cookie.Value)
+	closeBody(t, resp)
+}
+
+func TestPostBatchApi(t *testing.T) {
+	ts := getServer()
+	defer ts.Close()
+
+	body := `[
+    {"correlation_id": "123","original_url": "https://ya.ru"},
+    {"correlation_id": "987","original_url": "https://bo.ru"}
+    ] `
+	resp, responseBody := testRequest(t, ts, "POST", "/api/shorten/batch", body)
+
+	assert.Equal(t, http.StatusCreated, resp.StatusCode)
+	assert.Equal(t, `[{"correlation_id":"123","short_url":"http://localhost:8080/12345"},{"correlation_id":"987","short_url":"http://localhost:8080/67890"}]`, responseBody)
+	closeBody(t, resp)
+}
+
 func testRequest(t *testing.T, ts *httptest.Server, method, path string, body string, headers ...string) (*http.Response, string) {
 	req, err := http.NewRequest(method, ts.URL+path, strings.NewReader(body))
 	if len(headers) == 2 {
@@ -116,6 +191,10 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string, body st
 	}
 	require.NoError(t, err)
 
+	return sendRequest(t, req)
+}
+
+func sendRequest(t *testing.T, req *http.Request) (*http.Response, string) {
 	client := http.DefaultClient
 	client.CheckRedirect = func(req *http.Request, via []*http.Request) error {
 		return http.ErrUseLastResponse
@@ -127,25 +206,22 @@ func testRequest(t *testing.T, ts *httptest.Server, method, path string, body st
 	respBody, err := ioutil.ReadAll(resp.Body)
 	require.NoError(t, err)
 
-	defer func(Body io.ReadCloser) {
-		err := Body.Close()
-		if err != nil {
-			t.Fatal(err)
-		}
-	}(resp.Body)
+	defer resp.Body.Close()
 
 	return resp, string(respBody)
 }
 
 func unzip(original string) string {
 	reader := bytes.NewReader([]byte(original))
-	gzReader, e := gzip.NewReader(reader)
-	if e != nil {
-		log.Fatal(e)
+	gzReader, err := gzip.NewReader(reader)
+	if err != nil {
+		log.Println("exceptions while unzip", err)
+		return ""
 	}
-	output, e := ioutil.ReadAll(gzReader)
-	if e != nil {
-		log.Fatal(e)
+	output, err := ioutil.ReadAll(gzReader)
+	if err != nil {
+		log.Println("exceptions while unzip", err)
+		return ""
 	}
 	return string(output)
 }
@@ -154,10 +230,10 @@ func zip(original string) string {
 	var b bytes.Buffer
 	gz := gzip.NewWriter(&b)
 	if _, err := gz.Write([]byte(original)); err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	if err := gz.Close(); err != nil {
-		log.Fatal(err)
+		log.Println(err)
 	}
 	return b.String()
 }
@@ -170,7 +246,11 @@ func closeBody(t *testing.T, resp *http.Response) {
 }
 
 func getServer() *httptest.Server {
-	r := NewRouter(NewRequestHandler(service.NewShortService(storage.NewTestStorage()), "http://localhost:8080"))
+	r := NewRouter(NewRequestHandler(
+		service.NewMockShortService(),
+		"http://localhost:8080",
+		nil,
+	))
 	ts := httptest.NewServer(r)
 	return ts
 }
