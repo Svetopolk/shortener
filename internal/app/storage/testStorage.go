@@ -1,6 +1,10 @@
 package storage
 
-import "github.com/Svetopolk/shortener/internal/app/exceptions"
+import (
+	"log"
+
+	"github.com/Svetopolk/shortener/internal/app/exceptions"
+)
 
 type TestStorage struct{}
 
@@ -40,4 +44,14 @@ func (t TestStorage) GetAll() (map[string]string, error) {
 	data := make(map[string]string)
 	data["12345"] = "https://ya.ru"
 	return data, nil
+}
+
+func (t TestStorage) Delete(hash string) error {
+	log.Print("delete ", hash)
+	return nil
+}
+
+func (t TestStorage) BatchDelete(hashes []string) error {
+	log.Print("delete ", hashes)
+	return nil
 }
