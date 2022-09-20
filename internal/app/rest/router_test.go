@@ -41,6 +41,17 @@ func TestGetEmpty(t *testing.T) {
 	closeBody(t, resp)
 }
 
+func TestGetDeleted(t *testing.T) {
+	ts := getServer()
+	defer ts.Close()
+
+	resp, body := testRequest(t, ts, "GET", "/_deleted_", "")
+
+	assert.Equal(t, http.StatusNotAcceptable, resp.StatusCode)
+	assert.Equal(t, "", body)
+	closeBody(t, resp)
+}
+
 func TestPostPositive(t *testing.T) {
 	ts := getServer()
 	defer ts.Close()

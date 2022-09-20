@@ -67,6 +67,10 @@ func (h *RequestHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 	hash := util.RemoveFirstSymbol(r.URL.Path)
 	fullURL, err := h.service.Get(hash)
 	if err != nil {
+		if err == exceptions.ErrURLDeleted {
+			w.WriteHeader(http.StatusNotAcceptable)
+			return
+		}
 		fullURL = "" // TODO if not found what to do?
 	}
 	w.Header().Set("Location", fullURL)
@@ -198,9 +202,33 @@ func (h *RequestHandler) getUserUrls(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
+func (h *RequestHandler) batchDelete(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	resBody, err := io.ReadAll(r.Body)
+	if err != nil {
+		panic(err)
+	}
+
+	var ids []string
+	if err := json.Unmarshal(resBody, &ids); err != nil {
+		log.Println("can not unmarshal body:[", string(resBody), "] ", err)
+	}
+
+	for i := range ids {
+		err := h.service.Delete(ids[i])
+		if err != nil {
+			log.Println("unexpected exceptions", err)
+			w.WriteHeader(http.StatusInternalServerError)
+		}
+	}
+	w.WriteHeader(http.StatusAccepted)
+}
+
 func (h *RequestHandler) handlePing(w http.ResponseWriter, r *http.Request) {
 	logging.Enter()
 	defer logging.Exit()
+
+	defer r.Body.Close()
 
 	if h.dbSource == nil {
 		log.Println("db ping error, db is not initialized")

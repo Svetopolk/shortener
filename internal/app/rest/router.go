@@ -41,6 +41,12 @@ func NewRouter(m *RequestHandler) chi.Router {
 
 			m.getUserUrls(w, r)
 		})
+		r.Delete("/api/user/urls", func(w http.ResponseWriter, r *http.Request) {
+			logging.Enter()
+			defer logging.Exit()
+
+			m.batchDelete(w, r)
+		})
 		r.Get("/ping", func(w http.ResponseWriter, r *http.Request) {
 			logging.Enter()
 			defer logging.Exit()

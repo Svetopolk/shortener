@@ -24,14 +24,14 @@ func TestPingWrongDBPort(t *testing.T) {
 }
 
 func TestPingOk(t *testing.T) {
-	db := initDBStorage(t)
+	db := initDB(t)
 
 	err := db.Ping()
 	require.NoError(t, err)
 }
 
 func TestSaveGet(t *testing.T) {
-	db := initDBStorage(t)
+	db := initDB(t)
 
 	hash := util.RandomString(5)
 	url := "https://" + util.RandomString(5)
@@ -44,7 +44,7 @@ func TestSaveGet(t *testing.T) {
 }
 
 func TestGetEmpty(t *testing.T) {
-	db := initDBStorage(t)
+	db := initDB(t)
 
 	hash := util.RandomString(5)
 
@@ -55,7 +55,7 @@ func TestGetEmpty(t *testing.T) {
 }
 
 func TestSaveSameHash(t *testing.T) {
-	db := initDBStorage(t)
+	db := initDB(t)
 
 	hash := util.RandomString(5)
 	url1 := "https://" + util.RandomString(5)
@@ -70,7 +70,7 @@ func TestSaveSameHash(t *testing.T) {
 }
 
 func TestSaveSameUrl(t *testing.T) {
-	db := initDBStorage(t)
+	db := initDB(t)
 
 	hash := util.RandomString(5)
 	url1 := "https://" + util.RandomString(5)
@@ -86,7 +86,7 @@ func TestSaveSameUrl(t *testing.T) {
 }
 
 func TestSave_GetHashByURL(t *testing.T) {
-	db := initDBStorage(t)
+	db := initDB(t)
 
 	hash1 := util.RandomString(5)
 	url := "https://" + util.RandomString(5)
@@ -100,7 +100,7 @@ func TestSave_GetHashByURL(t *testing.T) {
 }
 
 func TestSave_GetHashByURL_Empty(t *testing.T) {
-	db := initDBStorage(t)
+	db := initDB(t)
 
 	url := "https://" + util.RandomString(5)
 
@@ -110,7 +110,7 @@ func TestSave_GetHashByURL_Empty(t *testing.T) {
 }
 
 func TestGetAll(t *testing.T) {
-	db := initDBStorage(t)
+	db := initDB(t)
 
 	hash1 := util.RandomString(5)
 	hash2 := util.RandomString(5)
@@ -126,7 +126,52 @@ func TestGetAll(t *testing.T) {
 	assert.Equal(t, data[hash2], url2)
 }
 
-func initDBStorage(t *testing.T) *Source {
+func TestDelete(t *testing.T) {
+	db := initDB(t)
+
+	hash := util.RandomString(5)
+	url := "https://" + util.RandomString(5)
+
+	err1 := db.Save(hash, url)
+	assert.Nil(t, err1)
+
+	err2 := db.Delete(hash)
+	assert.Nil(t, err2)
+
+	url3, err3 := db.Get(hash)
+	assert.NotNil(t, err3)
+	assert.Equal(t, url, url3)
+	assert.Contains(t, err3.Error(), "url is deleted")
+}
+
+func TestBatchDelete(t *testing.T) {
+	db := initDB(t)
+
+	hash1 := util.RandomString(5)
+	hash2 := util.RandomString(5)
+	hash3 := util.RandomString(5)
+
+	_ = db.Save(hash1, "https://"+hash1)
+	_ = db.Save(hash2, "https://"+hash2)
+	_ = db.Save(hash3, "https://"+hash3)
+
+	hashes := []string{hash1, hash2}
+	err := db.BatchDelete(hashes)
+	assert.Nil(t, err)
+
+	_, err1 := db.Get(hash1)
+	assert.NotNil(t, err1)
+	assert.Contains(t, err1.Error(), "url is deleted")
+
+	_, err2 := db.Get(hash2)
+	assert.NotNil(t, err2)
+	assert.Contains(t, err2.Error(), "url is deleted")
+
+	_, err3 := db.Get(hash3)
+	assert.Nil(t, err3)
+}
+
+func initDB(t *testing.T) *Source {
 	db, err := NewDB("postgres://shortener:pass@localhost:5432/shortener")
 	if err != nil {
 		t.Skip("no db connection")
@@ -139,5 +184,6 @@ func initDBStorage(t *testing.T) *Source {
 		log.Println("exceptions while ping DB:", err)
 		t.Skip("no db connection")
 	}
+	db.InitTables()
 	return db
 }

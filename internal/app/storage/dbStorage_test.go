@@ -69,6 +69,67 @@ func TestDBStorageSaveBatch(t *testing.T) {
 	assert.Equal(t, url2, savedURL2)
 }
 
+func TestDBStorageDelete(t *testing.T) {
+	storage := initDBStorage(t)
+
+	hash1 := util.RandomString(10)
+	hash2 := util.RandomString(10)
+	url1 := "https://" + hash1
+	url2 := "https://" + hash2
+	hashes := []string{hash1, hash2}
+	urls := []string{url1, url2}
+
+	savedHashes, err := storage.SaveBatch(hashes, urls)
+	assert.Nil(t, err)
+	assert.Equal(t, hashes, savedHashes)
+
+	err = storage.Delete(hash1)
+	assert.Nil(t, err)
+
+	savedURL1, err1 := storage.Get(hash1)
+	assert.NotNil(t, err1)
+	assert.Contains(t, err1.Error(), "url is deleted")
+	assert.Equal(t, url1, savedURL1)
+
+	savedURL2, err2 := storage.Get(hash2)
+	assert.Nil(t, err2)
+	assert.Equal(t, url2, savedURL2)
+}
+
+func TestDBStorageBatchDelete(t *testing.T) {
+	storage := initDBStorage(t)
+
+	hash1 := util.RandomString(10)
+	hash2 := util.RandomString(10)
+	hash3 := util.RandomString(10)
+	url1 := "https://" + hash1
+	url2 := "https://" + hash2
+	url3 := "https://" + hash3
+	hashes := []string{hash1, hash2, hash3}
+	hashesToDelete := []string{hash1, hash2}
+	urls := []string{url1, url2, url3}
+
+	_, err := storage.SaveBatch(hashes, urls)
+	assert.Nil(t, err)
+
+	err = storage.BatchDelete(hashesToDelete)
+	assert.Nil(t, err)
+
+	savedURL1, err1 := storage.Get(hash1)
+	assert.NotNil(t, err1)
+	assert.Contains(t, err1.Error(), "url is deleted")
+	assert.Equal(t, url1, savedURL1)
+
+	savedURL2, err2 := storage.Get(hash2)
+	assert.NotNil(t, err2)
+	assert.Contains(t, err2.Error(), "url is deleted")
+	assert.Equal(t, url2, savedURL2)
+
+	savedURL3, err3 := storage.Get(hash3)
+	assert.Nil(t, err3)
+	assert.Equal(t, url3, savedURL3)
+}
+
 func initDBStorage(t *testing.T) *DBStorage {
 	dbSource, err := db.NewDB("postgres://shortener:pass@localhost:5432/shortener")
 	if err != nil {

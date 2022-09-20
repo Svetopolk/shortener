@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"log"
 	"strings"
 
 	"github.com/Svetopolk/shortener/internal/app/db"
@@ -63,4 +64,14 @@ func (s *DBStorage) Get(hash string) (string, error) {
 
 func (s *DBStorage) GetAll() (map[string]string, error) {
 	return s.dbSource.GetAll()
+}
+
+func (s *DBStorage) Delete(hash string) error {
+	log.Print("delete", hash)
+	return s.dbSource.Delete(hash)
+}
+
+func (s *DBStorage) BatchDelete(hashes []string) error {
+	log.Print("delete", hashes)
+	return s.dbSource.BatchDelete(hashes)
 }

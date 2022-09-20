@@ -37,3 +37,13 @@ func (m *MockStorage) Get(hash string) (string, error) {
 func (m *MockStorage) GetAll() (map[string]string, error) {
 	return make(map[string]string), nil
 }
+
+func (m *MockStorage) Delete(hash string) error {
+	log.Print("delete", hash)
+	return nil
+}
+
+func (m *MockStorage) BatchDelete(hashes []string) error {
+	log.Print("delete", hashes)
+	return nil
+}

@@ -5,4 +5,6 @@ type Storage interface {
 	SaveBatch(hashes []string, urls []string) ([]string, error)
 	Get(hash string) (string, error)
 	GetAll() (map[string]string, error)
+	Delete(hash string) error
+	BatchDelete(hashes []string) error
 }

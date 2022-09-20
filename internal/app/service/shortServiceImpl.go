@@ -78,3 +78,13 @@ func (s *ShortServiceImpl) checkOrChange(hash string) string {
 	log.Printf("hash %s already exist, generate a new one %s", hash, newHash)
 	return s.checkOrChange(newHash)
 }
+
+func (s *ShortServiceImpl) Delete(hash string) error {
+	log.Print("delete", hash)
+	return nil
+}
+
+func (s *ShortServiceImpl) BatchDelete(hashes []string) error {
+	log.Print("delete", hashes)
+	return nil
+}

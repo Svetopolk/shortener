@@ -1,6 +1,7 @@
 package storage
 
 import (
+	"log"
 	"sync"
 
 	"github.com/Svetopolk/shortener/internal/app/exceptions"
@@ -60,4 +61,14 @@ func (s *MemStorage) GetAll() (map[string]string, error) {
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 	return s.data, nil
+}
+
+func (s *MemStorage) Delete(hash string) error {
+	log.Print("delete", hash)
+	return nil
+}
+
+func (s *MemStorage) BatchDelete(hashes []string) error {
+	log.Print("delete", hashes)
+	return nil
 }

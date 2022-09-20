@@ -65,7 +65,7 @@ func (dbSource *Source) InitTables() {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	_, err := dbSource.db.ExecContext(ctx, `
-        create table urls (hash varchar(30) not null constraint urls_pk primary key, url varchar(500));
+        create table urls (hash varchar(30) not null constraint urls_pk primary key, url varchar(500), deleted bool default false not null);
 		create unique index urls_url_uindex on urls (url);
     `)
 	if err != nil {
@@ -127,14 +127,18 @@ func (dbSource *Source) Get(hash string) (string, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	var url string
-	row := dbSource.db.QueryRowContext(ctx, "select url from urls where hash = $1", hash)
-	err := row.Scan(&url)
+	var deleted bool
+	row := dbSource.db.QueryRowContext(ctx, "select url, deleted from urls where hash = $1", hash)
+	err := row.Scan(&url, &deleted)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
 			log.Println("Get from DB return nothing:", err)
 			return "", exceptions.ErrURLNotFound
 		}
 		log.Println("error while Get from DB:", err)
+	}
+	if deleted == true {
+		return url, exceptions.ErrURLDeleted
 	}
 	return url, nil
 }
@@ -193,4 +197,43 @@ func (dbSource *Source) GetHashByURL(url string) (string, error) {
 		log.Println("exceptions while Get hash from DB:", err)
 	}
 	return hash, nil
+}
+
+func (dbSource *Source) BatchDelete(hashes []string) error {
+	logging.Enter()
+	defer logging.Exit()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	tx, err := dbSource.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	stmt, err := dbSource.db.PrepareContext(ctx, "update urls set deleted=true where hash = $1")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for i := range hashes {
+		if _, err = stmt.ExecContext(ctx, hashes[i]); err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
+func (dbSource *Source) Delete(hash string) error {
+	logging.Enter()
+	defer logging.Exit()
+
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := dbSource.db.ExecContext(ctx, "update urls set deleted=true where hash = $1", hash)
+	return err
 }

@@ -126,3 +126,13 @@ func (s *FileStorage) writeToFile(hash string, url string) {
 		log.Println("error writing to file:", err)
 	}
 }
+
+func (s *FileStorage) Delete(hash string) error {
+	log.Print("delete", hash)
+	return nil
+}
+
+func (s *FileStorage) BatchDelete(hashes []string) error {
+	log.Print("delete", hashes)
+	return nil
+}
