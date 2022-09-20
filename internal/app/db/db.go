@@ -137,7 +137,7 @@ func (dbSource *Source) Get(hash string) (string, error) {
 		}
 		log.Println("error while Get from DB:", err)
 	}
-	if deleted == true {
+	if deleted {
 		return url, exceptions.ErrURLDeleted
 	}
 	return url, nil
