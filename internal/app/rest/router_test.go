@@ -195,6 +195,19 @@ func TestPostBatchApi(t *testing.T) {
 	closeBody(t, resp)
 }
 
+func TestDeleteBatchApi(t *testing.T) {
+	ts := getServer()
+	defer ts.Close()
+
+	resp, body := testRequest(t, ts, "POST", "/", "https://ya.ru")
+
+	assert.Equal(t, http.StatusCreated, resp.StatusCode)
+	assert.Equal(t, "http://localhost:8080/12345", body)
+	closeBody(t, resp)
+
+	//TODO дописать
+}
+
 func testRequest(t *testing.T, ts *httptest.Server, method, path string, body string, headers ...string) (*http.Response, string) {
 	req, err := http.NewRequest(method, ts.URL+path, strings.NewReader(body))
 	if len(headers) == 2 {

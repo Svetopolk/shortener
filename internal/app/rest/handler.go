@@ -204,14 +204,14 @@ func (h *RequestHandler) getUserUrls(w http.ResponseWriter, r *http.Request) {
 
 func (h *RequestHandler) batchDelete(w http.ResponseWriter, r *http.Request) {
 	defer r.Body.Close()
-	resBody, err := io.ReadAll(r.Body)
+	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		panic(err)
 	}
-
+	log.Println("delete request is received:", reqBody)
 	var ids []string
-	if err := json.Unmarshal(resBody, &ids); err != nil {
-		log.Println("can not unmarshal body:[", string(resBody), "] ", err)
+	if err := json.Unmarshal(reqBody, &ids); err != nil {
+		log.Println("can not unmarshal body:[", string(reqBody), "] ", err)
 	}
 
 	for i := range ids {
