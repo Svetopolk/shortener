@@ -209,7 +209,7 @@ func (h *RequestHandler) batchDelete(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	log.Println("delete request is received:", reqBody)
+	log.Println("delete request is received:", string(reqBody))
 	var ids []string
 	if err := json.Unmarshal(reqBody, &ids); err != nil {
 		log.Println("can not unmarshal body:[", string(reqBody), "] ", err)

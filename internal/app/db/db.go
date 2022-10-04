@@ -132,7 +132,6 @@ func (dbSource *Source) Get(hash string) (string, error) {
 	err := row.Scan(&url, &deleted)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			log.Println("Get from DB return nothing:", err)
 			return "", exceptions.ErrURLNotFound
 		}
 		log.Println("error while Get from DB:", err)
