@@ -199,13 +199,24 @@ func TestDeleteBatchApi(t *testing.T) {
 	ts := getServer()
 	defer ts.Close()
 
-	resp, body := testRequest(t, ts, "POST", "/", "https://ya.ru")
+	body := `[
+    {"correlation_id": "123","original_url": "https://ya.ru"},
+    {"correlation_id": "987","original_url": "https://bo.ru"}
+    ] `
+	resp, responseBody := testRequest(t, ts, "POST", "/api/shorten/batch", body)
 
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
-	assert.Equal(t, "http://localhost:8080/12345", body)
+	assert.Equal(t, `[{"correlation_id":"123","short_url":"http://localhost:8080/12345"},{"correlation_id":"987","short_url":"http://localhost:8080/67890"}]`, responseBody)
 	closeBody(t, resp)
 
-	//TODO дописать
+	// delete
+
+	//deleteBody := `["123","987"]`
+	//resp2, responseBody2 := testRequest(t, ts, "POST", "/api/user/urls", deleteBody)
+	//
+	//assert.Equal(t, http.StatusCreated, resp2.StatusCode)
+	//assert.Equal(t, `["123","987"]`, responseBody2)
+	//closeBody(t, resp)
 }
 
 func testRequest(t *testing.T, ts *httptest.Server, method, path string, body string, headers ...string) (*http.Response, string) {
