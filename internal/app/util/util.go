@@ -2,6 +2,7 @@ package util
 
 import (
 	"math/rand"
+	"regexp"
 	"time"
 )
 
@@ -21,4 +22,13 @@ func RandomString(n int) string {
 
 func RemoveFirstSymbol(s string) string {
 	return s[1:]
+}
+
+func GrabHashFromUrl(s string) string {
+	re := regexp.MustCompile(`^.*/(.*)$`)
+	match := re.FindStringSubmatch(s)
+	if len(match) < 2 {
+		return ""
+	}
+	return match[1]
 }

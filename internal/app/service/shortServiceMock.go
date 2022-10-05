@@ -58,11 +58,11 @@ func (s *MockShortService) SaveBatch(hashes []string, urls []string) ([]string, 
 }
 
 func (s *MockShortService) Delete(hash string) error {
-	log.Print("delete", hash)
+	log.Print("delete ", hash)
 	return nil
 }
 
 func (s *MockShortService) BatchDelete(hashes []string) error {
-	log.Print("delete", hashes)
+	log.Print("delete ", hashes)
 	return nil
 }

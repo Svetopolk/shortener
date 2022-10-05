@@ -5,7 +5,6 @@ import (
 	"sync"
 
 	"github.com/Svetopolk/shortener/internal/app/exceptions"
-	"github.com/Svetopolk/shortener/internal/logging"
 )
 
 type MemStorage struct {
@@ -16,16 +15,10 @@ type MemStorage struct {
 var _ Storage = &MemStorage{}
 
 func NewMemStorage() *MemStorage {
-	logging.Enter()
-	defer logging.Exit()
-
 	return &MemStorage{data: make(map[string]string)}
 }
 
 func (s *MemStorage) Save(hash string, url string) (string, error) {
-	logging.Enter()
-	defer logging.Exit()
-
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 	s.data[hash] = url
@@ -42,9 +35,7 @@ func (s *MemStorage) SaveBatch(hashes []string, urls []string) ([]string, error)
 }
 
 func (s *MemStorage) Get(hash string) (string, error) {
-	logging.Enter()
-	defer logging.Exit()
-
+	log.Print("MemStorage Get ", hash)
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
 	value, ok := s.data[hash]
@@ -55,20 +46,26 @@ func (s *MemStorage) Get(hash string) (string, error) {
 }
 
 func (s *MemStorage) GetAll() (map[string]string, error) {
-	logging.Enter()
-	defer logging.Exit()
-
+	log.Print("MemStorage GetAll")
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 	return s.data, nil
 }
 
 func (s *MemStorage) Delete(hash string) error {
-	log.Print("delete", hash)
+	log.Print("MemStorage Delete ", hash)
+	s.mtx.RLock()
+	defer s.mtx.RUnlock()
+	delete(s.data, hash)
 	return nil
 }
 
 func (s *MemStorage) BatchDelete(hashes []string) error {
-	log.Print("delete", hashes)
+	log.Print("MemStorage BatchDelete ", hashes)
+	s.mtx.RLock()
+	defer s.mtx.RUnlock()
+	for _, hash := range hashes {
+		delete(s.data, hash)
+	}
 	return nil
 }

@@ -47,7 +47,7 @@ func TestGetDeleted(t *testing.T) {
 
 	resp, body := testRequest(t, ts, "GET", "/_deleted_", "")
 
-	assert.Equal(t, http.StatusNotAcceptable, resp.StatusCode)
+	assert.Equal(t, http.StatusGone, resp.StatusCode)
 	assert.Equal(t, "", body)
 	closeBody(t, resp)
 }
@@ -199,24 +199,20 @@ func TestDeleteBatchApi(t *testing.T) {
 	ts := getServer()
 	defer ts.Close()
 
-	body := `[
-    {"correlation_id": "123","original_url": "https://ya.ru"},
-    {"correlation_id": "987","original_url": "https://bo.ru"}
-    ] `
-	resp, responseBody := testRequest(t, ts, "POST", "/api/shorten/batch", body)
+	resp, body := testRequest(t, ts, "POST", "/api/shorten", `{"url":"https://ya.ru"}`)
 
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
-	assert.Equal(t, `[{"correlation_id":"123","short_url":"http://localhost:8080/12345"},{"correlation_id":"987","short_url":"http://localhost:8080/67890"}]`, responseBody)
+	assert.Equal(t, `{"result":"http://localhost:8080/12345"}`, body)
 	closeBody(t, resp)
 
 	// delete
 
-	//deleteBody := `["123","987"]`
-	//resp2, responseBody2 := testRequest(t, ts, "POST", "/api/user/urls", deleteBody)
+	deleteBody := `["12345", "3456"]`
+	resp2, responseBody2 := testRequest(t, ts, "DELETE", "/api/user/urls", deleteBody)
 	//
-	//assert.Equal(t, http.StatusCreated, resp2.StatusCode)
-	//assert.Equal(t, `["123","987"]`, responseBody2)
-	//closeBody(t, resp)
+	assert.Equal(t, http.StatusAccepted, resp2.StatusCode)
+	assert.Equal(t, ``, responseBody2)
+	closeBody(t, resp)
 }
 
 func testRequest(t *testing.T, ts *httptest.Server, method, path string, body string, headers ...string) (*http.Response, string) {

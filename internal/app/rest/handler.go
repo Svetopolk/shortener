@@ -22,9 +22,6 @@ type RequestHandler struct {
 }
 
 func NewRequestHandler(service service.ShortService, baseURL string, db *db.Source) *RequestHandler {
-	logging.Enter()
-	defer logging.Exit()
-
 	return &RequestHandler{
 		service:  service,
 		baseURL:  baseURL,
@@ -61,14 +58,13 @@ func (h *RequestHandler) handlePost(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *RequestHandler) handleGet(w http.ResponseWriter, r *http.Request) {
-	logging.Enter()
-	defer logging.Exit()
+	log.Print("handleGet, URL=", r.URL)
 
 	hash := util.RemoveFirstSymbol(r.URL.Path)
 	fullURL, err := h.service.Get(hash)
 	if err != nil {
 		if err == exceptions.ErrURLDeleted {
-			w.WriteHeader(http.StatusNotAcceptable)
+			w.WriteHeader(http.StatusGone)
 			return
 		}
 		fullURL = "" // TODO if not found what to do?
@@ -82,18 +78,17 @@ func (h *RequestHandler) handleGet(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *RequestHandler) handleJSONPost(w http.ResponseWriter, r *http.Request) {
-	logging.Enter()
-	defer logging.Exit()
-
 	defer r.Body.Close()
-	resBody, err := io.ReadAll(r.Body)
+	reqBody, err := io.ReadAll(r.Body)
 	if err != nil {
 		panic(err)
 	}
 
+	log.Print("handleJSONPost, reqBody=", reqBody)
+
 	value := Request{}
-	if err := json.Unmarshal(resBody, &value); err != nil {
-		log.Println("can not unmarshal body:[", string(resBody), "] ", err)
+	if err := json.Unmarshal(reqBody, &value); err != nil {
+		log.Println("can not unmarshal body:[", string(reqBody), "] ", err)
 	}
 
 	w.Header().Set("Content-Type", "application/json")
@@ -108,7 +103,7 @@ func (h *RequestHandler) handleJSONPost(w http.ResponseWriter, r *http.Request) 
 	response := Response{h.makeShortURL(hash)}
 	responseString, err := json.Marshal(response)
 	if err != nil {
-		log.Println("can not marshal response:[", string(resBody), "] ", err)
+		log.Println("can not marshal response:[", string(reqBody), "] ", err)
 	}
 
 	_, err = w.Write(responseString)
@@ -124,7 +119,7 @@ func (h *RequestHandler) handleBatch(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	log.Println("handleBatch body:", reqBody)
+	log.Println("handleBatch body=", reqBody)
 	var batchRequests []BatchRequest
 	if err := json.Unmarshal(reqBody, &batchRequests); err != nil {
 		log.Println("can not unmarshal body:[", string(reqBody), "] ", err)
@@ -158,15 +153,15 @@ func (h *RequestHandler) handleBatch(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *RequestHandler) getUserUrls(w http.ResponseWriter, r *http.Request) {
-	logging.Enter()
-	defer logging.Exit()
-
 	userIDCookie, err := r.Cookie(userIDCookieName)
 	if err != nil {
 		log.Println("err when get userID cookie:", err)
 		w.WriteHeader(http.StatusNoContent)
 		return
 	}
+
+	log.Println("getUserUrls userIDCookie=", userIDCookie.Value)
+
 	userID, err2 := decodeID(userIDCookie.Value)
 	if err2 != nil {
 		log.Println("err when decode userID cookie:", err2)
@@ -209,7 +204,9 @@ func (h *RequestHandler) batchDelete(w http.ResponseWriter, r *http.Request) {
 	if err != nil {
 		panic(err)
 	}
-	log.Println("delete request is received:", string(reqBody))
+
+	log.Println("batchDelete body=", string(reqBody))
+
 	var ids []string
 	if err := json.Unmarshal(reqBody, &ids); err != nil {
 		log.Println("can not unmarshal body:[", string(reqBody), "] ", err)
@@ -226,10 +223,9 @@ func (h *RequestHandler) batchDelete(w http.ResponseWriter, r *http.Request) {
 }
 
 func (h *RequestHandler) handlePing(w http.ResponseWriter, r *http.Request) {
-	logging.Enter()
-	defer logging.Exit()
-
 	defer r.Body.Close()
+
+	log.Println("handlePing")
 
 	if h.dbSource == nil {
 		log.Println("db ping error, db is not initialized")
