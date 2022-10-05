@@ -24,7 +24,7 @@ func RemoveFirstSymbol(s string) string {
 	return s[1:]
 }
 
-func GrabHashFromURL(s string) string {
+func GrabHashFromUrl(s string) string {
 	re := regexp.MustCompile(`^.*/(.*)$`)
 	match := re.FindStringSubmatch(s)
 	if len(match) < 2 {
