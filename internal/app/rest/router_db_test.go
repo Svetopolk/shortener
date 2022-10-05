@@ -1,13 +1,11 @@
 package rest
 
 import (
-	"context"
 	"encoding/json"
 	"log"
 	"net/http"
 	"net/http/httptest"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -77,9 +75,7 @@ func getDBServer(t *testing.T) *httptest.Server {
 	if err != nil {
 		t.Skip("no db connection")
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-	defer cancel()
-	err = db.Db.PingContext(ctx)
+	err = db.Ping()
 
 	if err != nil {
 		log.Println("exceptions while ping DB:", err)

@@ -178,7 +178,7 @@ func initDB(t *testing.T) *Source {
 	}
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
-	err = db.Db.PingContext(ctx)
+	err = db.db.PingContext(ctx)
 
 	if err != nil {
 		log.Println("exceptions while ping DB:", err)
