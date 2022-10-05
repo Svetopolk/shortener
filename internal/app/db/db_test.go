@@ -1,10 +1,8 @@
 package db
 
 import (
-	"context"
 	"log"
 	"testing"
-	"time"
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
@@ -176,9 +174,7 @@ func initDB(t *testing.T) *Source {
 	if err != nil {
 		t.Skip("no db connection")
 	}
-	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
-	defer cancel()
-	err = db.db.PingContext(ctx)
+	err = db.Ping()
 
 	if err != nil {
 		log.Println("exceptions while ping DB:", err)

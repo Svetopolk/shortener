@@ -66,7 +66,7 @@ func grabHash(t *testing.T, body string) string {
 	if err != nil {
 		t.Error("can't unmarshal response body ", body)
 	}
-	hash := util.GrabHashFromUrl(response.Result)
+	hash := util.GrabHashFromURL(response.Result)
 	return hash
 }
 

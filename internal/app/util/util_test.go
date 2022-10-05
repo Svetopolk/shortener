@@ -18,6 +18,6 @@ func TestRandomString(t *testing.T) {
 
 func TestGrabHashFromUrl(t *testing.T) {
 	s := `http://localhost:8080/VEurjx`
-	hash := GrabHashFromUrl(s)
+	hash := GrabHashFromURL(s)
 	log.Print("hash hash hash ", hash)
 }
