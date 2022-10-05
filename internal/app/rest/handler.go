@@ -210,11 +210,12 @@ func (h *RequestHandler) batchDelete(w http.ResponseWriter, r *http.Request) {
 		log.Println("can not unmarshal body:[", string(reqBody), "] ", err)
 	}
 
-	err = h.service.BatchDelete(ids)
-	if err != nil {
-		log.Println("unexpected exceptions while BatchDelete", err)
-		w.WriteHeader(http.StatusInternalServerError)
-	}
+	go func() {
+		err := h.service.BatchDelete(ids)
+		if err != nil {
+			log.Println("unexpected exceptions while BatchDelete", err)
+		}
+	}()
 
 	w.WriteHeader(http.StatusAccepted)
 }
