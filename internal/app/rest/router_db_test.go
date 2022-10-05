@@ -20,10 +20,10 @@ func TestDbDeleteBatchApi(t *testing.T) {
 	ts := getDBServer(t)
 	defer ts.Close()
 
-	randomUrl := generateRandomUrl()
-	log.Println("randomUrl ===== " + randomUrl)
+	randomURL := generateRandomURL()
+	log.Println("randomURL ===== " + randomURL)
 
-	resp, body := testRequest(t, ts, "POST", "/api/shorten", getRequest(randomUrl))
+	resp, body := testRequest(t, ts, "POST", "/api/shorten", getRequest(randomURL))
 	assert.Equal(t, http.StatusCreated, resp.StatusCode)
 	closeBody(t, resp)
 
@@ -33,7 +33,7 @@ func TestDbDeleteBatchApi(t *testing.T) {
 	// get url
 	resp2, _ := testRequest(t, ts, "GET", "/"+hash, "")
 	assert.Equal(t, http.StatusTemporaryRedirect, resp2.StatusCode)
-	assert.Equal(t, randomUrl, resp2.Header.Get("Location"))
+	assert.Equal(t, randomURL, resp2.Header.Get("Location"))
 	closeBody(t, resp2)
 
 	// delete
@@ -50,7 +50,7 @@ func TestDbDeleteBatchApi(t *testing.T) {
 	closeBody(t, resp3)
 }
 
-func generateRandomUrl() string {
+func generateRandomURL() string {
 	return "https://" + util.RandomString(6) + ".ru"
 }
 

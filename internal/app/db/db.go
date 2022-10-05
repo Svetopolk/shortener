@@ -10,7 +10,6 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 
 	"github.com/Svetopolk/shortener/internal/app/exceptions"
-	"github.com/Svetopolk/shortener/internal/logging"
 )
 
 type Source struct {
@@ -18,9 +17,6 @@ type Source struct {
 }
 
 func NewDB(DatabaseDsn string) (*Source, error) {
-	logging.Enter()
-	defer logging.Exit()
-
 	db, err := sql.Open("pgx", DatabaseDsn)
 	if err != nil {
 		return nil, err
@@ -35,9 +31,6 @@ func NewDB(DatabaseDsn string) (*Source, error) {
 }
 
 func (dbSource *Source) Close() error {
-	logging.Enter()
-	defer logging.Exit()
-
 	err := dbSource.db.Close()
 	if err != nil {
 		log.Println("exceptions closing connection to DB:", err)
@@ -46,9 +39,6 @@ func (dbSource *Source) Close() error {
 }
 
 func (dbSource *Source) Ping() error {
-	logging.Enter()
-	defer logging.Exit()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	if err := dbSource.db.PingContext(ctx); err != nil {
@@ -59,9 +49,6 @@ func (dbSource *Source) Ping() error {
 }
 
 func (dbSource *Source) InitTables() {
-	logging.Enter()
-	defer logging.Exit()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	_, err := dbSource.db.ExecContext(ctx, `
@@ -76,9 +63,6 @@ func (dbSource *Source) InitTables() {
 }
 
 func (dbSource *Source) Save(hash string, url string) error {
-	logging.Enter()
-	defer logging.Exit()
-
 	log.Println("try to save; hash=", hash, "url=", url)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -93,9 +77,6 @@ func (dbSource *Source) Save(hash string, url string) error {
 }
 
 func (dbSource *Source) SaveBatch(hashes []string, urls []string) error {
-	logging.Enter()
-	defer logging.Exit()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -121,9 +102,6 @@ func (dbSource *Source) SaveBatch(hashes []string, urls []string) error {
 }
 
 func (dbSource *Source) Get(hash string) (string, error) {
-	logging.Enter()
-	defer logging.Exit()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	var url string
@@ -144,10 +122,6 @@ func (dbSource *Source) Get(hash string) (string, error) {
 
 func (dbSource *Source) GetAll() (map[string]string, error) {
 	Limit := 2000
-
-	logging.Enter()
-	defer logging.Exit()
-
 	var hash string
 	var url string
 	data := make(map[string]string)
@@ -179,9 +153,6 @@ func (dbSource *Source) GetAll() (map[string]string, error) {
 }
 
 func (dbSource *Source) GetHashByURL(url string) (string, error) {
-	logging.Enter()
-	defer logging.Exit()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -199,9 +170,6 @@ func (dbSource *Source) GetHashByURL(url string) (string, error) {
 }
 
 func (dbSource *Source) BatchDelete(hashes []string) error {
-	logging.Enter()
-	defer logging.Exit()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -227,9 +195,6 @@ func (dbSource *Source) BatchDelete(hashes []string) error {
 }
 
 func (dbSource *Source) Delete(hash string) error {
-	logging.Enter()
-	defer logging.Exit()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 

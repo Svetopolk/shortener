@@ -12,7 +12,6 @@ import (
 	"github.com/Svetopolk/shortener/internal/app/exceptions"
 	"github.com/Svetopolk/shortener/internal/app/service"
 	"github.com/Svetopolk/shortener/internal/app/util"
-	"github.com/Svetopolk/shortener/internal/logging"
 )
 
 type RequestHandler struct {
@@ -30,15 +29,14 @@ func NewRequestHandler(service service.ShortService, baseURL string, db *db.Sour
 }
 
 func (h *RequestHandler) handlePost(w http.ResponseWriter, r *http.Request) {
-	logging.Enter()
-	defer logging.Exit()
-
 	body, err := io.ReadAll(r.Body)
 	if err != nil {
 		http.Error(w, err.Error(), http.StatusInternalServerError)
 		return
 	}
 	defer r.Body.Close()
+
+	log.Print("handlePost, body=", string(body))
 
 	if len(body) == 0 {
 		w.WriteHeader(http.StatusBadRequest)
@@ -212,13 +210,12 @@ func (h *RequestHandler) batchDelete(w http.ResponseWriter, r *http.Request) {
 		log.Println("can not unmarshal body:[", string(reqBody), "] ", err)
 	}
 
-	for i := range ids {
-		err := h.service.Delete(ids[i])
-		if err != nil {
-			log.Println("unexpected exceptions", err)
-			w.WriteHeader(http.StatusInternalServerError)
-		}
+	err = h.service.BatchDelete(ids)
+	if err != nil {
+		log.Println("unexpected exceptions while BatchDelete", err)
+		w.WriteHeader(http.StatusInternalServerError)
 	}
+
 	w.WriteHeader(http.StatusAccepted)
 }
 
