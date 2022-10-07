@@ -48,6 +48,7 @@ func TestDbDeleteBatchApi(t *testing.T) {
 	var resp3 *http.Response
 	for i := 0; i < 100; i++ {
 		resp3, _ = testRequest(t, ts, "GET", "/"+hash, "")
+		closeBody(t, resp3)
 		if resp3.StatusCode != http.StatusTemporaryRedirect {
 			break
 		}
@@ -56,7 +57,6 @@ func TestDbDeleteBatchApi(t *testing.T) {
 	}
 	assert.Equal(t, http.StatusGone, resp3.StatusCode)
 	assert.Equal(t, "", resp3.Header.Get("Location"))
-	closeBody(t, resp3)
 }
 
 func generateRandomURL() string {
