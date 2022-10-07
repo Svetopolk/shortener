@@ -206,13 +206,12 @@ func TestDeleteBatchApi(t *testing.T) {
 	closeBody(t, resp)
 
 	// delete
-
 	deleteBody := `["12345", "3456"]`
 	resp2, responseBody2 := testRequest(t, ts, "DELETE", "/api/user/urls", deleteBody)
-	//
+	closeBody(t, resp2)
+
 	assert.Equal(t, http.StatusAccepted, resp2.StatusCode)
 	assert.Equal(t, ``, responseBody2)
-	closeBody(t, resp)
 }
 
 func testRequest(t *testing.T, ts *httptest.Server, method, path string, body string, headers ...string) (*http.Response, string) {

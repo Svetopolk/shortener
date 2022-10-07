@@ -6,6 +6,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"testing"
+	"time"
 
 	"github.com/stretchr/testify/assert"
 
@@ -44,7 +45,15 @@ func TestDbDeleteBatchApi(t *testing.T) {
 	closeBody(t, resp2)
 
 	// get url after delete
-	resp3, _ := testRequest(t, ts, "GET", "/"+hash, "")
+	var resp3 *http.Response
+	for i := 0; i < 100; i++ {
+		resp3, _ = testRequest(t, ts, "GET", "/"+hash, "")
+		if resp3.StatusCode != http.StatusTemporaryRedirect {
+			break
+		}
+		log.Println("wait, url is not deleted yet, hash=", hash)
+		time.Sleep(100 * time.Millisecond)
+	}
 	assert.Equal(t, http.StatusGone, resp3.StatusCode)
 	assert.Equal(t, "", resp3.Header.Get("Location"))
 	closeBody(t, resp3)
@@ -71,11 +80,11 @@ func grabHash(t *testing.T, body string) string {
 }
 
 func getDBServer(t *testing.T) *httptest.Server {
-	db, err := db.NewDB("postgres://shortener:pass@localhost:5432/shortener")
+	dbSource, err := db.NewDB("postgres://shortener:pass@localhost:5432/shortener")
 	if err != nil {
 		t.Skip("no db connection")
 	}
-	err = db.Ping()
+	err = dbSource.Ping()
 
 	if err != nil {
 		log.Println("exceptions while ping DB:", err)
@@ -83,7 +92,7 @@ func getDBServer(t *testing.T) *httptest.Server {
 	}
 
 	r := NewRouter(NewRequestHandler(
-		service.NewShortService(storage.NewDBStorage(db)),
+		service.NewShortService(storage.NewDBStorage(dbSource)),
 		"http://localhost:8080",
 		nil,
 	))

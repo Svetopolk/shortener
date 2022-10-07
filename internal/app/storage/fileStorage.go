@@ -114,11 +114,9 @@ func (s *FileStorage) writeToFile(hash string, url string) {
 }
 
 func (s *FileStorage) Delete(hash string) error {
-	log.Print("FileStorage Delete ", hash)
-	return nil
+	return exceptions.ErrNotImplemented
 }
 
 func (s *FileStorage) BatchDelete(hashes []string) error {
-	log.Print("FileStorage BatchDelete ", hashes)
-	return nil
+	return exceptions.ErrNotImplemented
 }
