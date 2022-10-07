@@ -14,35 +14,24 @@ var _ ShortService = &ShortServiceImpl{}
 
 type ShortServiceImpl struct {
 	storage           storage.Storage
+	asyncStorage      storage.Storage
 	initialHashLength int
 }
 
-func NewShortService(storage storage.Storage) *ShortServiceImpl {
-	// logging.Enter()
-	// defer logging.Exit()
-
-	return &ShortServiceImpl{storage: storage, initialHashLength: 6}
+func NewShortService(st storage.Storage) *ShortServiceImpl {
+	return &ShortServiceImpl{storage: st, asyncStorage: storage.NewAsyncStorage(st), initialHashLength: 6}
 }
 
 func (s *ShortServiceImpl) Get(hash string) (string, error) {
-	// logging.Enter()
-	// defer logging.Exit()
-
 	log.Printf("ShortServiceImpl: get key %s\n", hash)
 	return s.storage.Get(hash)
 }
 
 func (s *ShortServiceImpl) GetAll() (map[string]string, error) {
-	// logging.Enter()
-	// defer logging.Exit()
-
 	return s.storage.GetAll()
 }
 
 func (s *ShortServiceImpl) Save(url string) (string, error) {
-	// logging.Enter()
-	// defer logging.Exit()
-
 	log.Printf("ShortServiceImpl: save url %s\n", url)
 	hash := s.generateHash()
 	hash, err := s.storage.Save(hash, url)
@@ -50,22 +39,14 @@ func (s *ShortServiceImpl) Save(url string) (string, error) {
 }
 
 func (s *ShortServiceImpl) SaveBatch(hashes []string, urls []string) ([]string, error) {
-	// logging.Enter()
-	// defer logging.Exit()
 	return s.storage.SaveBatch(hashes, urls)
 }
 
 func (s *ShortServiceImpl) generateHash() string {
-	// logging.Enter()
-	// defer logging.Exit()
-
 	return s.checkOrChange(util.RandomString(s.initialHashLength))
 }
 
 func (s *ShortServiceImpl) checkOrChange(hash string) string {
-	// logging.Enter()
-	// defer logging.Exit()
-
 	_, err := s.storage.Get(hash)
 	if err != nil {
 		if errors.Is(err, exceptions.ErrURLNotFound) {
@@ -84,5 +65,5 @@ func (s *ShortServiceImpl) Delete(hash string) error {
 }
 
 func (s *ShortServiceImpl) BatchDelete(hashes []string) error {
-	return s.storage.BatchDelete(hashes)
+	return s.asyncStorage.BatchDelete(hashes)
 }
