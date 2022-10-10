@@ -74,6 +74,9 @@ func (s *FileStorage) GetAll() (map[string]string, error) {
 	return s.data, nil
 }
 
+func (s *FileStorage) Shutdown() {
+}
+
 func checkDirExistOrCreate(fileStoragePath string) {
 	dir, _ := filepath.Split(fileStoragePath)
 	if dir == "" {

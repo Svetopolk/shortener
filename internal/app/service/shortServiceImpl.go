@@ -67,3 +67,7 @@ func (s *ShortServiceImpl) Delete(hash string) error {
 func (s *ShortServiceImpl) BatchDelete(hashes []string) error {
 	return s.asyncStorage.BatchDelete(hashes)
 }
+
+func (s *ShortServiceImpl) Shutdown() {
+	s.asyncStorage.Shutdown()
+}

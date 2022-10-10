@@ -1,9 +1,12 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"log"
 	"net/http"
+	"os/signal"
+	"syscall"
 
 	"github.com/caarlos0/env/v6"
 
@@ -11,7 +14,6 @@ import (
 	"github.com/Svetopolk/shortener/internal/app/rest"
 	"github.com/Svetopolk/shortener/internal/app/service"
 	"github.com/Svetopolk/shortener/internal/app/storage"
-	"github.com/Svetopolk/shortener/internal/logging"
 )
 
 type Config struct {
@@ -22,8 +24,8 @@ type Config struct {
 }
 
 func main() {
-	logging.Enter()
-	defer logging.Exit()
+	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
+	defer stop()
 
 	var cfg Config
 	err := env.Parse(&cfg)
@@ -66,7 +68,14 @@ func main() {
 	handler := rest.NewRequestHandler(shortService, cfg.BaseURL, dbSource)
 	router := rest.NewRouter(handler)
 
-	if err = http.ListenAndServe(cfg.ServerAddress, router); err != nil {
-		log.Println("listen and serve failed: " + err.Error())
-	}
+	go func() {
+		if err = http.ListenAndServe(cfg.ServerAddress, router); err != nil {
+			log.Println("listen and serve failed: " + err.Error())
+		}
+	}()
+
+	<-ctx.Done()
+	log.Println("shutting down server gracefully start")
+	shortService.Shutdown()
+	log.Println("shutting down server gracefully finish")
 }

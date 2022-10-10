@@ -47,3 +47,6 @@ func (m *MockStorage) BatchDelete(hashes []string) error {
 	log.Print("delete ", hashes)
 	return nil
 }
+
+func (m *MockStorage) Shutdown() {
+}

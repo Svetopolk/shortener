@@ -55,3 +55,6 @@ func (t TestStorage) BatchDelete(hashes []string) error {
 	log.Print("delete ", hashes)
 	return nil
 }
+
+func (t *TestStorage) Shutdown() {
+}

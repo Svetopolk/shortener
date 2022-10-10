@@ -72,3 +72,6 @@ func (s *DBStorage) Delete(hash string) error {
 func (s *DBStorage) BatchDelete(hashes []string) error {
 	return s.dbSource.BatchDelete(hashes)
 }
+
+func (s *DBStorage) Shutdown() {
+}

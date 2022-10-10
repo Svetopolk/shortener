@@ -7,4 +7,5 @@ type Storage interface {
 	GetAll() (map[string]string, error)
 	Delete(hash string) error
 	BatchDelete(hashes []string) error
+	Shutdown()
 }

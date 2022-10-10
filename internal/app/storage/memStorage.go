@@ -92,3 +92,6 @@ func (s *MemStorage) BatchDelete(hashes []string) error {
 	}
 	return nil
 }
+
+func (s *MemStorage) Shutdown() {
+}
