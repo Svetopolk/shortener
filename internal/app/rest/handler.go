@@ -85,7 +85,7 @@ func (h *RequestHandler) handleJSONPost(w http.ResponseWriter, r *http.Request) 
 		return
 	}
 
-	log.Print("handleJSONPost, reqBody=", reqBody)
+	log.Print("handleJSONPost, reqBody=", string(reqBody))
 
 	value := Request{}
 	if err := json.Unmarshal(reqBody, &value); err != nil {
@@ -127,7 +127,7 @@ func (h *RequestHandler) handleBatch(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	log.Println("handleBatch body=", reqBody)
+	log.Println("handleBatch body=", string(reqBody))
 	var batchRequests []BatchRequest
 	if err := json.Unmarshal(reqBody, &batchRequests); err != nil {
 		log.Println("can not unmarshal body:[", string(reqBody), "] ", err)

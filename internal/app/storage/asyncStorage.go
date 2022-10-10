@@ -48,6 +48,7 @@ func (a *AsyncStorage) Delete(hash string) error {
 }
 
 func (a *AsyncStorage) BatchDelete(hashes []string) error {
+	log.Println("BatchDelete() hashes=", hashes)
 	a.mtx.RLock()
 	defer a.mtx.RUnlock()
 	a.deleteQueue = append(a.deleteQueue, hashes...)
