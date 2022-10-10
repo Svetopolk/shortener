@@ -65,11 +65,11 @@ func (a *AsyncStorage) Shutdown() {
 }
 
 func (a *AsyncStorage) BatchDeleteFromQueue() {
+	a.mtx.RLock()
+	defer a.mtx.RUnlock()
 	if len(a.deleteQueue) == 0 {
 		return
 	}
-	a.mtx.RLock()
-	defer a.mtx.RUnlock()
 	size := min(len(a.deleteQueue), a.batchSize)
 	batch := a.deleteQueue[:size]
 	a.deleteQueue = a.deleteQueue[size:]

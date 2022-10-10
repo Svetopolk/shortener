@@ -32,7 +32,7 @@ func NewFileStorage(fileStoragePath string) *FileStorage {
 }
 
 func (s *FileStorage) Save(hash string, url string) (string, error) {
-	log.Print("FileStorage Save", hash)
+	log.Print("FileStorage Save	", hash)
 
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
@@ -42,7 +42,7 @@ func (s *FileStorage) Save(hash string, url string) (string, error) {
 }
 
 func (s *FileStorage) SaveBatch(hashes []string, urls []string) ([]string, error) {
-	log.Print("FileStorage SaveBatch", hashes)
+	log.Print("FileStorage SaveBatch ", hashes)
 
 	values := make([]string, 0, len(hashes))
 
