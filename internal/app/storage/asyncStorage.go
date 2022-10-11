@@ -49,15 +49,15 @@ func (a *AsyncStorage) Delete(hash string) error {
 
 func (a *AsyncStorage) BatchDelete(hashes []string) error {
 	log.Println("BatchDelete() hashes=", hashes)
-	a.mtx.RLock()
-	defer a.mtx.RUnlock()
+	a.mtx.Lock()
+	defer a.mtx.Unlock()
 	a.deleteQueue = append(a.deleteQueue, hashes...)
 	return nil
 }
 
 func (a *AsyncStorage) Shutdown() {
-	a.mtx.RLock()
-	defer a.mtx.RUnlock()
+	a.mtx.Lock()
+	defer a.mtx.Unlock()
 	err := a.storage.BatchDelete(a.deleteQueue)
 	if err != nil {
 		log.Println("error when shutdown deleteQueue flash")
@@ -65,8 +65,8 @@ func (a *AsyncStorage) Shutdown() {
 }
 
 func (a *AsyncStorage) BatchDeleteFromQueue() {
-	a.mtx.RLock()
-	defer a.mtx.RUnlock()
+	a.mtx.Lock()
+	defer a.mtx.Unlock()
 	if len(a.deleteQueue) == 0 {
 		return
 	}
