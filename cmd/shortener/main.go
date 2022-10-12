@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"log"
 	"os/signal"
 	"syscall"
 
@@ -21,10 +22,10 @@ func main() {
 
 	server := server.NewByConfig()
 
-	server.Start(ctx)
+	server.Start()
 
-	//<-ctx.Done()
-	//log.Println("shutting down server gracefully start")
-	//server.Shutdown()
-	//log.Println("shutting down server gracefully finish")
+	<-ctx.Done()
+	log.Println("shutting down server gracefully start")
+	server.Shutdown()
+	log.Println("shutting down server gracefully finish")
 }
