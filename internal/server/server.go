@@ -69,16 +69,16 @@ func NewByConfig() *Server {
 	handler := rest.NewRequestHandler(shortService, cfg.BaseURL, dbSource)
 	router := rest.NewRouter(handler)
 
-	return &Server{cfg: Config{}, shortService: shortService, router: &router}
+	return &Server{cfg: cfg, shortService: shortService, router: &router}
 }
 
-func (s *Server) Run() error {
+func (s *Server) Run() {
 	go func() {
+		log.Println("run server on", s.cfg.ServerAddress)
 		if err := http.ListenAndServe(s.cfg.ServerAddress, *s.router); err != nil {
 			log.Println("listen and serve failed: " + err.Error())
 		}
 	}()
-	return nil
 }
 
 func (s *Server) Shutdown() {

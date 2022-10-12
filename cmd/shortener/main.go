@@ -15,9 +15,7 @@ func main() {
 
 	server := server.NewByConfig()
 
-	if err := server.Run(); err != nil {
-		log.Println("Error during start server...", err)
-	}
+	server.Run()
 
 	<-ctx.Done()
 	log.Println("shutting down server gracefully start")
