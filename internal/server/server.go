@@ -72,10 +72,13 @@ func NewByConfig() *Server {
 	return &Server{cfg: Config{}, shortService: shortService, router: &router}
 }
 
-func (s *Server) Start() {
-	if err := http.ListenAndServe(s.cfg.ServerAddress, *s.router); err != nil {
-		log.Println("listen and serve failed: " + err.Error())
-	}
+func (s *Server) Run() error {
+	go func() {
+		if err := http.ListenAndServe(s.cfg.ServerAddress, *s.router); err != nil {
+			log.Println("listen and serve failed: " + err.Error())
+		}
+	}()
+	return nil
 }
 
 func (s *Server) Shutdown() {
