@@ -59,6 +59,15 @@ func TestDbDeleteBatchApi(t *testing.T) {
 	assert.Equal(t, "", resp3.Header.Get("Location"))
 }
 
+func TestDbPing(t *testing.T) {
+	ts := getDBServer(t)
+	defer ts.Close()
+
+	resp, _ := testRequest(t, ts, "GET", "/ping", "")
+	assert.Equal(t, http.StatusOK, resp.StatusCode)
+	closeBody(t, resp)
+}
+
 func generateRandomURL() string {
 	return "https://" + util.RandomString(6) + ".ru"
 }
@@ -94,7 +103,7 @@ func getDBServer(t *testing.T) *httptest.Server {
 	r := NewRouter(NewRequestHandler(
 		service.NewShortService(storage.NewDBStorage(dbSource)),
 		"http://localhost:8080",
-		nil,
+		dbSource,
 	))
 	return httptest.NewServer(r)
 }

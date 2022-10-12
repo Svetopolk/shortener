@@ -13,12 +13,12 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), syscall.SIGINT, syscall.SIGTERM)
 	defer stop()
 
-	server := server.NewByConfig()
+	srv := server.NewByConfig()
 
-	server.Run()
+	srv.Run()
 
 	<-ctx.Done()
 	log.Println("shutting down server gracefully start")
-	server.Shutdown()
+	srv.Shutdown()
 	log.Println("shutting down server gracefully finish")
 }

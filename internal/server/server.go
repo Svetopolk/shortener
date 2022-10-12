@@ -15,7 +15,7 @@ import (
 )
 
 type Server struct {
-	router       *chi.Router
+	router       chi.Router
 	shortService *service.ShortService
 	cfg          Config
 }
@@ -53,7 +53,6 @@ func NewByConfig() *Server {
 		if err != nil {
 			log.Fatal("failed to init dbSource: " + err.Error())
 		}
-		defer dbSource.Close()
 		store = storage.NewDBStorage(dbSource)
 	case cfg.FileStoragePath != "":
 		log.Println("environment var FILE_STORAGE_PATH is found: " + cfg.FileStoragePath)
@@ -69,13 +68,13 @@ func NewByConfig() *Server {
 	handler := rest.NewRequestHandler(shortService, cfg.BaseURL, dbSource)
 	router := rest.NewRouter(handler)
 
-	return &Server{cfg: cfg, shortService: shortService, router: &router}
+	return &Server{cfg: cfg, shortService: shortService, router: router}
 }
 
 func (s *Server) Run() {
 	go func() {
 		log.Println("run server on", s.cfg.ServerAddress)
-		if err := http.ListenAndServe(s.cfg.ServerAddress, *s.router); err != nil {
+		if err := http.ListenAndServe(s.cfg.ServerAddress, s.router); err != nil {
 			log.Println("listen and serve failed: " + err.Error())
 		}
 	}()
