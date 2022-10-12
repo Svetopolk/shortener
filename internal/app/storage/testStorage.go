@@ -56,5 +56,5 @@ func (t TestStorage) BatchDelete(hashes []string) error {
 	return nil
 }
 
-func (t *TestStorage) Shutdown() {
+func (t *TestStorage) Close() {
 }

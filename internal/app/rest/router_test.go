@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/Svetopolk/shortener/internal/app/service"
+	"github.com/Svetopolk/shortener/internal/app/storage"
 )
 
 func TestGetPositive(t *testing.T) {
@@ -277,7 +278,7 @@ func closeBody(t *testing.T, resp *http.Response) {
 
 func getServer() *httptest.Server {
 	r := NewRouter(NewRequestHandler(
-		service.NewMockShortService(),
+		service.NewShortService(storage.NewMockStorage()),
 		"http://localhost:8080",
 		nil,
 	))

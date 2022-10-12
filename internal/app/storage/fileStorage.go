@@ -74,7 +74,7 @@ func (s *FileStorage) GetAll() (map[string]string, error) {
 	return s.data, nil
 }
 
-func (s *FileStorage) Shutdown() {
+func (s *FileStorage) Close() {
 }
 
 func checkDirExistOrCreate(fileStoragePath string) {

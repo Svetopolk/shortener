@@ -55,7 +55,7 @@ func (a *AsyncStorage) BatchDelete(hashes []string) error {
 	return nil
 }
 
-func (a *AsyncStorage) Shutdown() {
+func (a *AsyncStorage) Close() {
 	a.mtx.Lock()
 	defer a.mtx.Unlock()
 	err := a.storage.BatchDelete(a.deleteQueue)
