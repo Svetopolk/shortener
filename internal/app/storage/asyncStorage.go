@@ -2,8 +2,6 @@ package storage
 
 import (
 	"log"
-	"sync"
-	"time"
 
 	"github.com/Svetopolk/shortener/internal/app/exceptions"
 )
@@ -12,18 +10,17 @@ var _ Storage = &AsyncStorage{}
 
 type AsyncStorage struct {
 	storage     Storage
-	deleteQueue []string
+	deleteQueue chan string
 	batchSize   int
-	mtx         sync.RWMutex
 }
 
-func NewAsyncStorage(st Storage) *AsyncStorage {
+func NewAsyncStorage(st Storage, bufferSize int) *AsyncStorage {
 	asyncStorage := &AsyncStorage{
 		storage:     st,
-		deleteQueue: make([]string, 0, 100),
+		deleteQueue: make(chan string, bufferSize),
 		batchSize:   10,
 	}
-	asyncStorage.startPeriodicDelete(1 * time.Second)
+	asyncStorage.startAsyncDeleter()
 	return asyncStorage
 }
 
@@ -49,50 +46,25 @@ func (a *AsyncStorage) Delete(hash string) error {
 
 func (a *AsyncStorage) BatchDelete(hashes []string) error {
 	log.Println("BatchDelete() hashes=", hashes)
-	a.mtx.Lock()
-	defer a.mtx.Unlock()
-	a.deleteQueue = append(a.deleteQueue, hashes...)
+	for _, hash := range hashes {
+		a.deleteQueue <- hash
+	}
 	return nil
 }
 
 func (a *AsyncStorage) Close() {
-	a.mtx.Lock()
-	defer a.mtx.Unlock()
-	err := a.storage.BatchDelete(a.deleteQueue)
-	if err != nil {
-		log.Println("error when shutdown deleteQueue flash")
-	}
+	log.Println("close deleted queue")
+	close(a.deleteQueue)
 }
 
-func (a *AsyncStorage) BatchDeleteFromQueue() {
-	a.mtx.Lock()
-	defer a.mtx.Unlock()
-	if len(a.deleteQueue) == 0 {
-		return
-	}
-	size := min(len(a.deleteQueue), a.batchSize)
-	batch := a.deleteQueue[:size]
-	a.deleteQueue = a.deleteQueue[size:]
-	log.Println("BatchDeleteFromQueue(); batch size=", size, "batch=", batch)
-	err := a.storage.BatchDelete(batch)
-	if err != nil {
-		log.Println("error when BatchDeleteFromQueue", err)
-	}
-}
-
-func (a *AsyncStorage) startPeriodicDelete(period time.Duration) {
-	ticker := time.NewTicker(period)
+func (a *AsyncStorage) startAsyncDeleter() {
 	go func() {
-		for {
-			<-ticker.C
-			a.BatchDeleteFromQueue()
+		for hash := range a.deleteQueue {
+			err := a.storage.Delete(hash)
+			if err != nil {
+				log.Println("delete error for hash=", hash, err)
+			}
 		}
+		log.Println("deleteQueue closed, startAsyncDeleter closed")
 	}()
-}
-
-func min(a, b int) int {
-	if a < b {
-		return a
-	}
-	return b
 }

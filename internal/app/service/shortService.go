@@ -19,7 +19,7 @@ type ShortService struct {
 func NewShortService(st storage.Storage) *ShortService {
 	return &ShortService{
 		storage:           st,
-		asyncStorage:      storage.NewAsyncStorage(st),
+		asyncStorage:      storage.NewAsyncStorage(st, 50),
 		initialHashLength: 6,
 	}
 }
