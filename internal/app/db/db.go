@@ -10,7 +10,6 @@ import (
 	_ "github.com/jackc/pgx/v4/stdlib"
 
 	"github.com/Svetopolk/shortener/internal/app/exceptions"
-	"github.com/Svetopolk/shortener/internal/logging"
 )
 
 type Source struct {
@@ -18,9 +17,6 @@ type Source struct {
 }
 
 func NewDB(DatabaseDsn string) (*Source, error) {
-	logging.Enter()
-	defer logging.Exit()
-
 	db, err := sql.Open("pgx", DatabaseDsn)
 	if err != nil {
 		return nil, err
@@ -35,9 +31,6 @@ func NewDB(DatabaseDsn string) (*Source, error) {
 }
 
 func (dbSource *Source) Close() error {
-	logging.Enter()
-	defer logging.Exit()
-
 	err := dbSource.db.Close()
 	if err != nil {
 		log.Println("exceptions closing connection to DB:", err)
@@ -46,9 +39,6 @@ func (dbSource *Source) Close() error {
 }
 
 func (dbSource *Source) Ping() error {
-	logging.Enter()
-	defer logging.Exit()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 1*time.Second)
 	defer cancel()
 	if err := dbSource.db.PingContext(ctx); err != nil {
@@ -59,13 +49,10 @@ func (dbSource *Source) Ping() error {
 }
 
 func (dbSource *Source) InitTables() {
-	logging.Enter()
-	defer logging.Exit()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	_, err := dbSource.db.ExecContext(ctx, `
-        create table urls (hash varchar(30) not null constraint urls_pk primary key, url varchar(500));
+        create table urls (hash varchar(30) not null constraint urls_pk primary key, url varchar(500), deleted bool default false not null);
 		create unique index urls_url_uindex on urls (url);
     `)
 	if err != nil {
@@ -76,9 +63,6 @@ func (dbSource *Source) InitTables() {
 }
 
 func (dbSource *Source) Save(hash string, url string) error {
-	logging.Enter()
-	defer logging.Exit()
-
 	log.Println("try to save; hash=", hash, "url=", url)
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
@@ -93,9 +77,6 @@ func (dbSource *Source) Save(hash string, url string) error {
 }
 
 func (dbSource *Source) SaveBatch(hashes []string, urls []string) error {
-	logging.Enter()
-	defer logging.Exit()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -121,30 +102,26 @@ func (dbSource *Source) SaveBatch(hashes []string, urls []string) error {
 }
 
 func (dbSource *Source) Get(hash string) (string, error) {
-	logging.Enter()
-	defer logging.Exit()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 	var url string
-	row := dbSource.db.QueryRowContext(ctx, "select url from urls where hash = $1", hash)
-	err := row.Scan(&url)
+	var deleted bool
+	row := dbSource.db.QueryRowContext(ctx, "select url, deleted from urls where hash = $1", hash)
+	err := row.Scan(&url, &deleted)
 	if err != nil {
 		if errors.Is(err, sql.ErrNoRows) {
-			log.Println("Get from DB return nothing:", err)
 			return "", exceptions.ErrURLNotFound
 		}
 		log.Println("error while Get from DB:", err)
+	}
+	if deleted {
+		return url, exceptions.ErrURLDeleted
 	}
 	return url, nil
 }
 
 func (dbSource *Source) GetAll() (map[string]string, error) {
 	Limit := 2000
-
-	logging.Enter()
-	defer logging.Exit()
-
 	var hash string
 	var url string
 	data := make(map[string]string)
@@ -176,9 +153,6 @@ func (dbSource *Source) GetAll() (map[string]string, error) {
 }
 
 func (dbSource *Source) GetHashByURL(url string) (string, error) {
-	logging.Enter()
-	defer logging.Exit()
-
 	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
 	defer cancel()
 
@@ -193,4 +167,37 @@ func (dbSource *Source) GetHashByURL(url string) (string, error) {
 		log.Println("exceptions while Get hash from DB:", err)
 	}
 	return hash, nil
+}
+
+func (dbSource *Source) BatchDelete(hashes []string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	tx, err := dbSource.db.Begin()
+	if err != nil {
+		return err
+	}
+	defer tx.Rollback()
+
+	stmt, err := dbSource.db.PrepareContext(ctx, "update urls set deleted=true where hash = $1")
+	if err != nil {
+		return err
+	}
+	defer stmt.Close()
+
+	for i := range hashes {
+		if _, err = stmt.ExecContext(ctx, hashes[i]); err != nil {
+			return err
+		}
+	}
+
+	return tx.Commit()
+}
+
+func (dbSource *Source) Delete(hash string) error {
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	_, err := dbSource.db.ExecContext(ctx, "update urls set deleted=true where hash = $1", hash)
+	return err
 }

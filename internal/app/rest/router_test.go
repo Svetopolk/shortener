@@ -15,6 +15,7 @@ import (
 	"github.com/stretchr/testify/require"
 
 	"github.com/Svetopolk/shortener/internal/app/service"
+	"github.com/Svetopolk/shortener/internal/app/storage"
 )
 
 func TestGetPositive(t *testing.T) {
@@ -38,6 +39,17 @@ func TestGetEmpty(t *testing.T) {
 	assert.Equal(t, http.StatusTemporaryRedirect, resp.StatusCode)
 	assert.Equal(t, "", resp.Header.Get("Location"))
 	assert.Equal(t, "redirect to ", body)
+	closeBody(t, resp)
+}
+
+func TestGetDeleted(t *testing.T) {
+	ts := getServer()
+	defer ts.Close()
+
+	resp, body := testRequest(t, ts, "GET", "/_deleted_", "")
+
+	assert.Equal(t, http.StatusGone, resp.StatusCode)
+	assert.Equal(t, "", body)
 	closeBody(t, resp)
 }
 
@@ -184,6 +196,25 @@ func TestPostBatchApi(t *testing.T) {
 	closeBody(t, resp)
 }
 
+func TestDeleteBatchApi(t *testing.T) {
+	ts := getServer()
+	defer ts.Close()
+
+	resp, body := testRequest(t, ts, "POST", "/api/shorten", `{"url":"https://ya.ru"}`)
+
+	assert.Equal(t, http.StatusCreated, resp.StatusCode)
+	assert.Equal(t, `{"result":"http://localhost:8080/12345"}`, body)
+	closeBody(t, resp)
+
+	// delete
+	deleteBody := `["12345", "3456"]`
+	resp2, responseBody2 := testRequest(t, ts, "DELETE", "/api/user/urls", deleteBody)
+	closeBody(t, resp2)
+
+	assert.Equal(t, http.StatusAccepted, resp2.StatusCode)
+	assert.Equal(t, ``, responseBody2)
+}
+
 func testRequest(t *testing.T, ts *httptest.Server, method, path string, body string, headers ...string) (*http.Response, string) {
 	req, err := http.NewRequest(method, ts.URL+path, strings.NewReader(body))
 	if len(headers) == 2 {
@@ -247,7 +278,7 @@ func closeBody(t *testing.T, resp *http.Response) {
 
 func getServer() *httptest.Server {
 	r := NewRouter(NewRequestHandler(
-		service.NewMockShortService(),
+		service.NewShortService(storage.NewMockStorage()),
 		"http://localhost:8080",
 		nil,
 	))

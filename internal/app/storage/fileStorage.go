@@ -7,7 +7,6 @@ import (
 	"sync"
 
 	"github.com/Svetopolk/shortener/internal/app/exceptions"
-	"github.com/Svetopolk/shortener/internal/logging"
 )
 
 type FileStorage struct {
@@ -20,8 +19,7 @@ type FileStorage struct {
 var _ Storage = &FileStorage{}
 
 func NewFileStorage(fileStoragePath string) *FileStorage {
-	logging.Enter()
-	defer logging.Exit()
+	log.Print("FileStorage NewFileStorage")
 
 	checkDirExistOrCreate(fileStoragePath)
 	mapStore := readFromFileIntoMap(fileStoragePath)
@@ -34,8 +32,7 @@ func NewFileStorage(fileStoragePath string) *FileStorage {
 }
 
 func (s *FileStorage) Save(hash string, url string) (string, error) {
-	logging.Enter()
-	defer logging.Exit()
+	log.Print("FileStorage Save	", hash)
 
 	s.mtx.Lock()
 	defer s.mtx.Unlock()
@@ -45,6 +42,8 @@ func (s *FileStorage) Save(hash string, url string) (string, error) {
 }
 
 func (s *FileStorage) SaveBatch(hashes []string, urls []string) ([]string, error) {
+	log.Print("FileStorage SaveBatch ", hashes)
+
 	values := make([]string, 0, len(hashes))
 
 	for i := range hashes {
@@ -58,9 +57,7 @@ func (s *FileStorage) SaveBatch(hashes []string, urls []string) ([]string, error
 }
 
 func (s *FileStorage) Get(hash string) (string, error) {
-	logging.Enter()
-	defer logging.Exit()
-
+	log.Print("FileStorage Get", hash)
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 	value, ok := s.data[hash]
@@ -71,18 +68,16 @@ func (s *FileStorage) Get(hash string) (string, error) {
 }
 
 func (s *FileStorage) GetAll() (map[string]string, error) {
-	logging.Enter()
-	defer logging.Exit()
-
+	log.Print("FileStorage GetAll")
 	s.mtx.RLock()
 	defer s.mtx.RUnlock()
 	return s.data, nil
 }
 
-func checkDirExistOrCreate(fileStoragePath string) {
-	logging.Enter()
-	defer logging.Exit()
+func (s *FileStorage) Close() {
+}
 
+func checkDirExistOrCreate(fileStoragePath string) {
 	dir, _ := filepath.Split(fileStoragePath)
 	if dir == "" {
 		return
@@ -96,9 +91,6 @@ func checkDirExistOrCreate(fileStoragePath string) {
 }
 
 func readFromFileIntoMap(fileStoragePath string) map[string]string {
-	logging.Enter()
-	defer logging.Exit()
-
 	consumer, err := NewConsumer(fileStoragePath)
 	if err != nil {
 		log.Println("error reading file from disk:", err)
@@ -117,12 +109,17 @@ func readFromFileIntoMap(fileStoragePath string) map[string]string {
 }
 
 func (s *FileStorage) writeToFile(hash string, url string) {
-	logging.Enter()
-	defer logging.Exit()
-
 	record := Record{hash, url}
 	err := s.producer.WriteRecord(&record)
 	if err != nil {
 		log.Println("error writing to file:", err)
 	}
+}
+
+func (s *FileStorage) Delete(hash string) error {
+	return exceptions.ErrNotImplemented
+}
+
+func (s *FileStorage) BatchDelete(hashes []string) error {
+	return exceptions.ErrNotImplemented
 }

@@ -10,11 +10,13 @@ import (
 	"github.com/stretchr/testify/assert"
 
 	"github.com/Svetopolk/shortener/internal/app/service"
+	"github.com/Svetopolk/shortener/internal/app/storage"
 )
 
 func TestStatusHandler(t *testing.T) {
+	storage := storage.NewMockStorage()
 	h := NewRequestHandler(
-		service.NewMockShortService(),
+		service.NewShortService(storage),
 		"http://localhost:8080",
 		nil,
 	)

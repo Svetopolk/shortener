@@ -64,3 +64,15 @@ func (s *DBStorage) Get(hash string) (string, error) {
 func (s *DBStorage) GetAll() (map[string]string, error) {
 	return s.dbSource.GetAll()
 }
+
+func (s *DBStorage) Delete(hash string) error {
+	return s.dbSource.Delete(hash)
+}
+
+func (s *DBStorage) BatchDelete(hashes []string) error {
+	return s.dbSource.BatchDelete(hashes)
+}
+
+func (s *DBStorage) Close() {
+	s.dbSource.Close()
+}

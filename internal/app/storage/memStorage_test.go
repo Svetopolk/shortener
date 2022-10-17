@@ -5,13 +5,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 
-	"github.com/Svetopolk/shortener/internal/app/db"
 	"github.com/Svetopolk/shortener/internal/app/exceptions"
 	"github.com/Svetopolk/shortener/internal/app/util"
 )
 
-func TestDBStorage(t *testing.T) {
-	storage := initDBStorage(t)
+func TestMemStorage(t *testing.T) {
+	storage := NewMemStorage()
 
 	generatedHash1 := util.RandomString(10)
 	url1 := "https://" + generatedHash1
@@ -26,14 +25,6 @@ func TestDBStorage(t *testing.T) {
 	assert.Error(t, exceptions.ErrHashAlreadyExist, err2)
 	assert.Equal(t, generatedHash1, savedHash2)
 
-	// save same url with new hash
-	generatedHash3 := util.RandomString(10)
-	savedHash3, err3 := storage.Save(generatedHash3, url1)
-	assert.NotNil(t, err3)
-	assert.Error(t, exceptions.ErrURLAlreadyExist, err3)
-	assert.NotEqual(t, generatedHash1, generatedHash3)
-	assert.Equal(t, generatedHash1, savedHash3)
-
 	savedURL1, err := storage.Get(savedHash1)
 	assert.Nil(t, err)
 	assert.Equal(t, url1, savedURL1) // old value
@@ -46,8 +37,8 @@ func TestDBStorage(t *testing.T) {
 	assert.Equal(t, url1, urlFromMap)
 }
 
-func TestDBStorageSaveBatch(t *testing.T) {
-	storage := initDBStorage(t)
+func TestMemStorageSaveBatch(t *testing.T) {
+	storage := NewMemStorage()
 
 	hash1 := util.RandomString(10)
 	hash2 := util.RandomString(10)
@@ -69,8 +60,8 @@ func TestDBStorageSaveBatch(t *testing.T) {
 	assert.Equal(t, url2, savedURL2)
 }
 
-func TestDBStorageDelete(t *testing.T) {
-	storage := initDBStorage(t)
+func TestMemStorageDelete(t *testing.T) {
+	storage := NewMemStorage()
 
 	hash1 := util.RandomString(10)
 	hash2 := util.RandomString(10)
@@ -96,8 +87,8 @@ func TestDBStorageDelete(t *testing.T) {
 	assert.Equal(t, url2, savedURL2)
 }
 
-func TestDBStorageBatchDelete(t *testing.T) {
-	storage := initDBStorage(t)
+func TestMemStorageBatchDelete(t *testing.T) {
+	storage := NewMemStorage()
 
 	hash1 := util.RandomString(10)
 	hash2 := util.RandomString(10)
@@ -128,18 +119,4 @@ func TestDBStorageBatchDelete(t *testing.T) {
 	savedURL3, err3 := storage.Get(hash3)
 	assert.Nil(t, err3)
 	assert.Equal(t, url3, savedURL3)
-}
-
-func initDBStorage(t *testing.T) *DBStorage {
-	dbSource, err := db.NewDB("postgres://shortener:pass@localhost:5432/shortener")
-	if err != nil {
-		t.Error("exceptions when NewDB", err)
-	}
-
-	err = dbSource.Ping()
-	if err != nil {
-		t.Skip("no db connection")
-	}
-	storage := NewDBStorage(dbSource)
-	return storage
 }
